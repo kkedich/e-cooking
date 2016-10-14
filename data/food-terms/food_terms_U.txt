@@ -1,0 +1,19 @@
+18
+udo http://www.foodterms.com/encyclopedia/udo/index.html
+udon http://www.foodterms.com/encyclopedia/udon/index.html
+ugli-fruit http://www.foodterms.com/encyclopedia/ugli-fruit/index.html
+umami http://www.foodterms.com/encyclopedia/umami/index.html
+ume http://www.foodterms.com/encyclopedia/ume/index.html
+umeboshi http://www.foodterms.com/encyclopedia/umeboshi/index.html
+uni http://www.foodterms.com/encyclopedia/uni/index.html
+uniq-fruit http://www.foodterms.com/encyclopedia/uniq-fruit/index.html
+univalve http://www.foodterms.com/encyclopedia/univalve/index.html
+unleavened http://www.foodterms.com/encyclopedia/unleavened/index.html
+unmold http://www.foodterms.com/encyclopedia/unmold/index.html
+unsalted-butter http://www.foodterms.com/encyclopedia/unsalted-butter/index.html
+unsaturated-fat http://www.foodterms.com/encyclopedia/unsaturated-fat/index.html
+uovo http://www.foodterms.com/encyclopedia/uovo/index.html
+uovo-di-tonno http://www.foodterms.com/encyclopedia/uovo-di-tonno/index.html
+up http://www.foodterms.com/encyclopedia/up/index.html
+upside-down-cake http://www.foodterms.com/encyclopedia/upside-down-cake/index.html
+use-by-date http://www.foodterms.com/encyclopedia/use-by-date/index.html
