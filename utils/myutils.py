@@ -1,6 +1,7 @@
 
 import json
 import os.path
+import shutil
 
 
 def save_json(filename, data):
@@ -53,3 +54,15 @@ def load_number(filename):
         output_file.close()
 
     return number
+
+
+def create_directory(name):
+    directory= os.path.dirname(name)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def move(file, source, destination):
+
+    create_directory(destination)
+
+    shutil.move(source + file, destination + file)

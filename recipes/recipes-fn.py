@@ -4,12 +4,12 @@
 Get recipes with the ingredients list, description and image.
 """
 
-from string import ascii_lowercase
 import math
-import time
 import requests
-import myutils as utils
+import time
+from string import ascii_lowercase
 
+from utils import myutils as utils
 
 PATH_IMAGES = './data/recipes-fn/images/'
 PATH_RECIPES = './data/recipes-fn/'
@@ -44,7 +44,9 @@ def get_content_of(url):
 
     html = response.content
     html = html.decode('latin1')
+    # print 'tamanho html antes do replace=',  len(html)
     html = html.replace('\r\n', ' ')
+    # print 'tamanho html depois do replace=', len(html)
     lines = html.split('\n')
     # print len(lines)
 
@@ -57,6 +59,7 @@ def find(lines, what_to_find):
 
 def save_image(url, output_file):
     response = requests.get(url)
+    # response.status_code
 
     output = open(output_file, "wb")
     output.write(response.content)
@@ -269,95 +272,15 @@ def main():
     print 'Total recipes not found =', len(recipes_notfound)
     print 'Total recipes retrieved =', len(recipes_data)
 
+    # URL(s) that generated problems, but were already corrected.
     # url_recipe = 'http://www.foodnetwork.com/recipes/melissa-darabian/affogato-recipe2.html' another type of image
     # url_recipe = 'http://www.foodnetwork.com/recipes/alaskan-sushi-recipe.html' redirect
     # http://www.foodnetwork.com/recipes/jeff-mauro/1-smore-for-the-road-and-kiddie-smores-recipe.html
     # http://www.foodnetwork.com/recipes/michael-chiarello/melissa-darabian/affogato-recipe.html without valid link
     # http://www.foodnetwork.com/recipes/ina-garten/herb-mesa/agave-kettle-corn-recipe.html without content
     # http://www.foodnetwork.com/recipes/adam-and-eve-on-a-raftpoached-eggs-with-roasted-tomatoes-mushrooms-and-ham-recipe.html
-    # http://www.foodnetwork.com/recipes/boars-head-ichiban-teriyakiandtrade-style-chicken-and-avocado-bites-on-rice-crackers.html
+    # http: // www.foodnetwork.com / recipes / boars - head - ichiban - teriyakiandtrade - style - chicken - and -avocado - bites - on - rice - crackers.html
 
-    # recipes_data = {}
-    # recipes_not_found = []
-    # index = 0
-    # # Define start_by by the last recipe saved
-    # start_by = 0
-    # index_recipe = ID_STARTER + start_by
-    #
-    # # url_recipe = 'http://www.foodnetwork.com/recipes/alton-brown/10-minute-apple-sauce-recipe2.html'
-    # url_recipe = 'http://www.foodnetwork.com/recipes/boars-head-ichiban-teriyakiandtrade-style-chicken-and-avocado-bites-on-rice-crackers.html'
-    # content_recipe = get_content_of(url_recipe)
-    #
-    # if len(content_recipe) == 0:
-    #     recipes_not_found.append(url_recipe)
-    #     return
-    #
-    # lines = find(content_recipe, 'h1 itemprop="name"')
-    # # print lines
-    # title = lines[0].split('>')[1].split('<')[0]
-    # # title = title.replace('\r', ' ')
-    #
-    # # Used for the image and video search
-    # tmp_title = title.encode('ascii', 'xmlcharrefreplace').replace('&#226;&#132;&#162;', '&trade;')
-    # print tmp_title
-    # title = title.encode("ascii", "ignore")
-    # print title
-    #
-    # print u'Downloading information about the recipe <{}> ID-{} index={}'.format(tmp_title, index_recipe, index)
-    #
-    # # Image of current recipe. Always in position 2. First position gets an inferior (resolution) image.
-    # url_image = None
-    # line_image = find(content_recipe, 'title="{}" itemprop="image"'.format(tmp_title))
-    # if len(line_image) > 0:
-    #     url_image = line_image[1].split('src="')[1].split('"')[0]
-    # else:
-    #     # Test if there is a video.
-    #     line_image_video = find(content_recipe, 'alt="Recipe Video" itemprop="video"'.format(tmp_title))
-    #
-    #     if len(line_image_video) > 0:
-    #         url_image = line_image_video[0].split('img src="')[1].split('" width=')[0]
-    #     else:
-    #         print '[ERROR] Image NOT FOUND for <{}>\n'.format(tmp_title)
-    #         recipes_not_found.append(url_recipe)
-    #         return
-    #
-    # print url_image
-    #
-    # # Ingredients
-    # ingredients_rawdata = find(content_recipe, 'li itemprop="ingredients"')
-    # if len(ingredients_rawdata) == 0:
-    #     print '[ERROR] Ingredients NOT FOUND for <{}>\n'.format(title)
-    #     recipes_not_found.append(url_recipe)
-    #     return
-    # ingredients = [ingredient.split('>')[1].split('<')[0] for ingredient in ingredients_rawdata]
-    #
-    # list_ingredients = []
-    # for element in ingredients:
-    #     list_ingredients.append(element)
-    #
-    # print list_ingredients
-    #
-    # # Directions/description
-    # directions_rawdata = find(content_recipe, 'ul class="recipe-directions-list"')
-    # directions_rawdata = [directions.lstrip() for directions in directions_rawdata]
-    # # print 'directions=', len(directions_rawdata), ' ', directions_rawdata
-    #
-    # # # Save the data. Image and Ingredients: OK.
-    # # image_file = NAME_IMAGE_PREFIX + '-' + str(index_recipe) + '.jpeg'
-    # # path_image_file = PATH_IMAGES + image_file
-    # # save_image(url_image, path_image_file)
-    #
-    # recipes_data[index_recipe] = {}  # url_recipe   recipes_data[url_recipe] = {}
-    # recipes_data[index_recipe]['_id'] = index_recipe
-    # recipes_data[index_recipe]['name'] = title
-    # recipes_data[index_recipe]['ingredients'] = list_ingredients
-    # recipes_data[index_recipe]['url'] = url_recipe
-    # recipes_data[index_recipe]['image'] = url_image
-    # # recipes_data[index_recipe]['file_image'] = image_file
-    # recipes_data[index_recipe]['description'] = directions_rawdata
-    #
-    # print u'Downloaded recipe <{}> ID-{} index={}: OK\n'.format(title, index_recipe, index)
-    # index_recipe += 1
 
 
 if __name__ == '__main__':

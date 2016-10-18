@@ -4,12 +4,12 @@
 Get recipes with the ingredients list, description and image from Cooking TV Channel (CTC)
 """
 
-from string import ascii_lowercase
 import math
-import time
 import requests
-import myutils as utils
+import time
+from string import ascii_lowercase
 
+from utils import myutils as utils
 
 PATH_IMAGES = './data/recipes-ctc/images/'
 PATH_RECIPES = './data/recipes-ctc/'
@@ -246,7 +246,10 @@ def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe
 
         # Directions/description
         directions_rawdata = find_between(content_recipe, 'itemprop="recipeInstructions"', '</div>')
-        directions_rawdata = directions_rawdata[0]
+        if len(directions_rawdata) == 0:
+            directions_rawdata = ''  # Add recipe even without directions, since for now this information is not required
+        else:
+            directions_rawdata = directions_rawdata[0]
         # print directions_rawdata
 
         # Save the data. Image and Ingredients: OK.
