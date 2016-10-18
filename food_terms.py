@@ -77,6 +77,7 @@ def main():
         current_file = open(file_name, "w")
         current_file.write(len(terms_for_letter).__str__() + "\n")
         current_file.write("\n".join(terms_for_letter))
+        current_file.close()
 
         if letter == chr(ord('x')):
             break
