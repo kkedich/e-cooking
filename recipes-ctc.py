@@ -204,6 +204,7 @@ def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe
         # print is_from_fn
         if len(is_from_fn) > 0:
             print '[ERROR] Recipe from FN.com\n'
+            recipes_not_found.append(url_recipe)
             continue
 
         lines = find(content_recipe, '<span class="rTitle fn">')
@@ -270,9 +271,12 @@ def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe
         utils.save_file(tmp_notfound, recipes_not_found)
         utils.save_number(file_last_recipe, index)
 
-        if index % 100 == 0:
-            print 'Sleeping\n'
-            time.sleep(10)
+        if index % 100 == 0 or index % 50 == 0 or index % 60 == 0:
+            print 'Sleeping 20\n'
+            time.sleep(20)
+        elif index % 5 == 0:
+            print 'Sleeping 5\n'
+            time.sleep(5)
 
         # if index == start_by + 1:
         #     break

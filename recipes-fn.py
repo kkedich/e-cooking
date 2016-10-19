@@ -44,9 +44,7 @@ def get_content_of(url):
 
     html = response.content
     html = html.decode('latin1')
-    # print 'tamanho html antes do replace=',  len(html)
     html = html.replace('\r\n', ' ')
-    # print 'tamanho html depois do replace=', len(html)
     lines = html.split('\n')
     # print len(lines)
 
@@ -59,7 +57,6 @@ def find(lines, what_to_find):
 
 def save_image(url, output_file):
     response = requests.get(url)
-    # response.status_code
 
     output = open(output_file, "wb")
     output.write(response.content)
@@ -127,7 +124,6 @@ def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe
         recipes_not_found = utils.load_file(tmp_notfound)  # Not found
 
         index_recipe -= len(recipes_not_found)
-
         print u'\nLoaded data. Recipes = {} and Recipes_NF = {}. ID_STARTER = {}\n'.format(len(recipes_data), len(recipes_not_found), index_recipe)
 
 
@@ -142,25 +138,28 @@ def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe
 
         lines = find(content_recipe, 'h1 itemprop="name"')
         title = lines[0].split('>')[1].split('<')[0]
-        # title = title.replace('\r', ' ')
+        # Used for the image and video search (eliminating ascii characters TM)
+        tmp_title = title.encode('ascii', 'xmlcharrefreplace').replace('&#226;&#132;&#162;', '&trade;')
+        title = title.encode("ascii", "ignore")
 
-        print u'Downloading information about the recipe <{}> ID-{} index={}'.format(title, index_recipe, index)
+        print u'Downloading information about the recipe <{}> ID-{} index={}'.format(tmp_title, index_recipe, index)
 
         # Image of current recipe. Always in position 2. First position gets an inferior (resolution) image.
         url_image = None
-        line_image = find(content_recipe, 'title="{}" itemprop="image"'.format(title))
+        line_image = find(content_recipe, 'title="{}" itemprop="image"'.format(tmp_title))
         if len(line_image) > 0:
             url_image = line_image[1].split('src="')[1].split('"')[0]
         else:
             # Test if there is a video.
-            line_image_video = find(content_recipe, 'alt="Recipe Video" itemprop="video"'.format(title))
+            line_image_video = find(content_recipe, 'alt="Recipe Video" itemprop="video"'.format(tmp_title))
 
             if len(line_image_video) > 0:
                 url_image = line_image_video[0].split('img src="')[1].split('" width=')[0]
             else:
-                print '[ERROR] Image NOT FOUND for <{}>\n'.format(title)
+                print '[ERROR] Image NOT FOUND for <{}>\n'.format(tmp_title)
                 recipes_not_found.append(url_recipe)
                 continue
+
 
         # Ingredients
         ingredients_rawdata = find(content_recipe, 'li itemprop="ingredients"')
@@ -201,9 +200,15 @@ def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe
         utils.save_file(tmp_notfound, recipes_not_found)
         utils.save_number(file_last_recipe, index)
 
-        if index % 100 == 0:
-            print 'Sleeping\n'
-            time.sleep(10)
+        # if index % 100 == 0:
+        #     print 'Sleeping\n'
+        #     time.sleep(10)
+        if index % 100 == 0 or index % 50 == 0 or index % 60 == 0:
+            print 'Sleeping 14\n'
+            time.sleep(14)
+        elif index % 5 == 0:
+            print 'Sleeping 2\n'
+            time.sleep(2)
 
         # if index == start_by + 1:
         #     break
@@ -266,9 +271,11 @@ def main():
 
     # url_recipe = 'http://www.foodnetwork.com/recipes/melissa-darabian/affogato-recipe2.html' another type of image
     # url_recipe = 'http://www.foodnetwork.com/recipes/alaskan-sushi-recipe.html' redirect
+    # http://www.foodnetwork.com/recipes/jeff-mauro/1-smore-for-the-road-and-kiddie-smores-recipe.html
     # http://www.foodnetwork.com/recipes/michael-chiarello/melissa-darabian/affogato-recipe.html without valid link
     # http://www.foodnetwork.com/recipes/ina-garten/herb-mesa/agave-kettle-corn-recipe.html without content
     # http://www.foodnetwork.com/recipes/adam-and-eve-on-a-raftpoached-eggs-with-roasted-tomatoes-mushrooms-and-ham-recipe.html
+    # http://www.foodnetwork.com/recipes/boars-head-ichiban-teriyakiandtrade-style-chicken-and-avocado-bites-on-rice-crackers.html
 
     # recipes_data = {}
     # recipes_not_found = []
@@ -278,7 +285,7 @@ def main():
     # index_recipe = ID_STARTER + start_by
     #
     # # url_recipe = 'http://www.foodnetwork.com/recipes/alton-brown/10-minute-apple-sauce-recipe2.html'
-    # url_recipe = 'http://www.foodnetwork.com/recipes/adam-and-eve-on-a-raftpoached-eggs-with-roasted-tomatoes-mushrooms-and-ham-recipe.html'
+    # url_recipe = 'http://www.foodnetwork.com/recipes/boars-head-ichiban-teriyakiandtrade-style-chicken-and-avocado-bites-on-rice-crackers.html'
     # content_recipe = get_content_of(url_recipe)
     #
     # if len(content_recipe) == 0:
@@ -290,22 +297,27 @@ def main():
     # title = lines[0].split('>')[1].split('<')[0]
     # # title = title.replace('\r', ' ')
     #
-    # print u'Downloading information about the recipe <{}> ID-{} index={}'.format(title, index_recipe, index)
+    # # Used for the image and video search
+    # tmp_title = title.encode('ascii', 'xmlcharrefreplace').replace('&#226;&#132;&#162;', '&trade;')
+    # print tmp_title
+    # title = title.encode("ascii", "ignore")
+    # print title
+    #
+    # print u'Downloading information about the recipe <{}> ID-{} index={}'.format(tmp_title, index_recipe, index)
     #
     # # Image of current recipe. Always in position 2. First position gets an inferior (resolution) image.
     # url_image = None
-    # line_image = find(content_recipe, 'title="{}" itemprop="image"'.format(title))
+    # line_image = find(content_recipe, 'title="{}" itemprop="image"'.format(tmp_title))
     # if len(line_image) > 0:
-    #     print line_image
     #     url_image = line_image[1].split('src="')[1].split('"')[0]
     # else:
     #     # Test if there is a video.
-    #     line_image_video = find(content_recipe, 'alt="Recipe Video" itemprop="video"'.format(title))
+    #     line_image_video = find(content_recipe, 'alt="Recipe Video" itemprop="video"'.format(tmp_title))
     #
     #     if len(line_image_video) > 0:
     #         url_image = line_image_video[0].split('img src="')[1].split('" width=')[0]
     #     else:
-    #         print '[ERROR] Image NOT FOUND for <{}>\n'.format(title)
+    #         print '[ERROR] Image NOT FOUND for <{}>\n'.format(tmp_title)
     #         recipes_not_found.append(url_recipe)
     #         return
     #
