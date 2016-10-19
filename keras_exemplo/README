@@ -1,0 +1,9 @@
+Aqui estão os exemplos 2 e 3 do post. Não vi necessidade de executar o primeiro pq o objetivo é rodar o transfer-learning e fine-tuning.
+
+O exemplo 2 (classifier_from_little_data_script_2.py) usa uma rede pré-treinada, cujo modelo deve ser obtido daqui https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing. Coloque o modelo no mesmo diretório onde o código será executado.
+
+Crie também um diretório 'data' com subdiretórios 'data/train' e 'data/validation'. Para cada categoria a ser treinada deve ser criado um diretório e suas respectivas imagens. No meu teste usei 700 imagens de treino e 300 de validação, mas se a sua quantidade é diferente, modifique o código de acordo.
+
+Certificando-se que o Keras, SciPy, PIL estão instalados, executar primeiro o exemplo 2 (na cpu dura apenas alguns minutos). Dependendo do tamanho da sua base, talvez seja necessário ajustar o parametro de batch_size (com a base que fiz, alterei o batch_size para 16). A saída desse exemplo é um modelo que vai ser usado no exemplo 3.
+
+O exemplo 3 executa o fine-tuning, e usa como entrada o modelo pré-treinado e o arquivo de pesos bottleneck_fc_model.h5 gerado pelo programa 2. A etapa de fine-tuning é a mais demorada. Ainda não consegui fazer, mas o ideal é que ao terminar de executar o fine-tuning os pesos também sejam salvos, para que posteriormente possamos utilizá-los no predict.
