@@ -12,10 +12,10 @@ First, you must install Docker from [here](https://www.docker.com/what-docker).
 
 Once Docker is installed, you can follow the steps:
 
-- Get the image, where `image_name:tag` is one of the above options:
+1. Get the image, where `image_name:tag` is one of the above options:
     > docker pull image_name:tag
   
-- Create a new container.
+2. Create a new container.
 
     **CPU**
     > docker run -it -p 8888:8888 -p 6006:6006 -v /your-local-folder:/root/sharedfolder image_name:tag bash
