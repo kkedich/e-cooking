@@ -89,19 +89,19 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
     #         class_mode=None,
     #         shuffle=False)
     # bottleneck_features_validation = model.predict_generator(generator, constants.NB_VALIDATION_SAMPLES)
-    bottleneck_features_validation = model.predict(input_data_val, batch_size)
-    np.save(open(file_bottleneck_features_validation, 'w'), bottleneck_features_validation)
+
+    # bottleneck_features_validation = model.predict(input_data_val, batch_size)
+    # np.save(open(file_bottleneck_features_validation, 'w'), bottleneck_features_validation)
 
 
-def train_top_model(file_bottleneck_features_train, file_bottleneck_features_validation,
-                    top_model_weights_path,
-                    nb_epoch, batch_size,
+def train_top_model(file_bottleneck_features_train, file_bottleneck_features_validation, top_model_weights_path,
+                    nb_epoch, batch_size, validation_split,
                     ingredients):
 
     train_data = np.load(open(file_bottleneck_features_train))
     # train_labels = np.array([0] * (constants.NB_TRAIN_SAMPLES / 2) + [1] * (constants.NB_TRAIN_SAMPLES / 2))
 
-    validation_data = np.load(open(file_bottleneck_features_validation))
+    # validation_data = np.load(open(file_bottleneck_features_validation))
     # validation_labels = np.array([0] * (constants.NB_VALIDATION_SAMPLES / 2) + [1] * (constants.NB_VALIDATION_SAMPLES / 2))
 
     model = Sequential()
@@ -117,9 +117,9 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
     #           nb_epoch=nb_epoch, batch_size=batch_size,
     #           validation_data=(validation_data, validation_labels))
 
-    # TODO ver como fazer com validation, ja que nao tem labels e sim vetor de ingredientes
     model.fit(train_data,
               y={'ingredients': ingredients},
-              nb_epoch=nb_epoch, batch_size=batch_size)
+              nb_epoch=nb_epoch, batch_size=batch_size,
+              validation_split=validation_split)
 
     model.save_weights(top_model_weights_path)

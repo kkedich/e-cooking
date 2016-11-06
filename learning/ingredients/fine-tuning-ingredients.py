@@ -2,10 +2,12 @@
 import classifier_from_little_data_script_2 as classifier2
 import classifier_from_little_data_script_3 as classifier3
 import constants
+from keras.applications import vgg16
 
 def main():
 
     nb_epoch = 50
+    validation_split = 0.1  # 10 % of train data for validation
     input_ingredients = []
     input_train = []
     input_val = []
@@ -21,7 +23,7 @@ def main():
 
     classifier2.train_top_model(constants.file_bottleneck_features_train, constants.file_bottleneck_features_validation,
                                 constants.top_model_weights_path,
-                                nb_epoch, batch_size=constants.BATCH_SIZE,
+                                nb_epoch, batch_size=constants.BATCH_SIZE, validation_split=validation_split,
                                 ingredients=input_ingredients)
 
 
@@ -29,9 +31,9 @@ def main():
                             img_width=constants.IMG_WIDTH, img_height=constants.IMG_HEIGHT,
                             batch_size=constants.BATCH_SIZE, nb_epoch=nb_epoch,
                             ingredients=input_ingredients,
-                            train_data=input_train)
+                            train_data=input_train, validation_split=validation_split)
 
-
+    vgg16.preprocess_input()
 
 if __name__ == '__main__':
     main()

@@ -22,7 +22,7 @@ weights_path = 'vgg16_weights.h5'
 def fine_tuning(top_model_weights_path,
                 img_width, img_height,
                 train_data, ingredients,
-                nb_epoch, batch_size):
+                nb_epoch, batch_size, validation_split):
     # build the VGG16 network
     model = Sequential()
     model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width, img_height)))
@@ -91,21 +91,18 @@ def fine_tuning(top_model_weights_path,
     top_model.add(Dropout(0.5))
     top_model.add(Dense(len(ingredients), activation='sigmoid', name='ingredients'))
 
-    # note that it is necessary to start with a fully-trained
-    # classifier, including the top classifier,
+    # note that it is necessary to start with a fully-trained classifier, including the top classifier,
     # in order to successfully do fine-tuning
     top_model.load_weights(top_model_weights_path)
 
     # add the model on top of the convolutional base
     model.add(top_model)
 
-    # set the first 25 layers (up to the last conv block)
-    # to non-trainable (weights will not be updated)
+    # set the first 25 layers (up to the last conv block) to non-trainable (weights will not be updated)
     for layer in model.layers[:25]:
         layer.trainable = False
 
-    # compile the model with a SGD/momentum optimizer
-    # and a very slow learning rate.
+    # compile the model with a SGD/momentum optimizer and a very slow learning rate.
     # model.compile(loss='binary_crossentropy',
     #               optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
     #               metrics=['accuracy'])
@@ -145,5 +142,6 @@ def fine_tuning(top_model_weights_path,
 
     model.fit(train_data,
               y={'ingredients': ingredients},
-              nb_epoch=nb_epoch, batch_size=batch_size)
+              nb_epoch=nb_epoch, batch_size=batch_size,
+              validation_split=validation_split)
 
