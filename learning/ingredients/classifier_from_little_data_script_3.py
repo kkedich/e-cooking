@@ -1,11 +1,14 @@
+
+# import numpy as np
+# from keras.preprocessing.image import ImageDataGenerator
 import os
 import h5py
-# import numpy as np
-from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers import Activation, Dropout, Flatten, Dense
+from keras import backend as K
+from learning import result
 
 # path to the model weights files.
 weights_path = 'vgg16_weights.h5'
@@ -23,9 +26,16 @@ def fine_tuning(top_model_weights_path,
                 img_width, img_height,
                 train_data, ingredients,
                 nb_epoch, batch_size, validation_split):
+    # Determine proper input shape
+    if K.image_dim_ordering() == 'th':
+        input_shape = (3, img_width, img_height)
+    else:
+        input_shape = (img_width, img_height, 3)
+
     # build the VGG16 network
     model = Sequential()
-    model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width, img_height)))
+    # model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width, img_height)))
+    model.add(ZeroPadding2D((1, 1), input_shape=input_shape))
 
 
     model.add(Convolution2D(64, 3, 3, activation='relu', name='conv1_1'))
@@ -140,9 +150,11 @@ def fine_tuning(top_model_weights_path,
     #         validation_data=validation_generator,
     #         nb_val_samples=nb_validation_samples)
 
-    model.fit(train_data,
-              y={'ingredients': ingredients},
-              nb_epoch=nb_epoch, batch_size=batch_size,
-              validation_split=validation_split)
+    history = model.fit(train_data,
+                        y={'ingredients': ingredients},
+                        nb_epoch=nb_epoch, batch_size=batch_size,
+                        validation_split=validation_split)
+
+    result.process(history, './ingredients/')
 
     model.save('vgg16_model_ingredients.h5')

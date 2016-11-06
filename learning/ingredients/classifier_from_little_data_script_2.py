@@ -5,6 +5,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers import Activation, Dropout, Flatten, Dense
+from keras import backend as K
 
 # Path to the model weights file.
 weights_path = 'vgg16_weights.h5'
@@ -18,9 +19,22 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
     # TODO first without image augmentation
     # datagen = ImageDataGenerator(rescale=1./255)
 
+    # Determine proper input shape
+    if K.image_dim_ordering() == 'th':
+        input_shape = (3, img_width, img_height)
+    else:
+        input_shape = (img_width, img_height, 3)
+
+    # if not K.is_keras_tensor(input_data_train):
+    #     img_input = Input(tensor=input_data_train, shape=input_shape)
+    # else:
+    #     img_input = input_data_train
+
+
     # Build the VGG16 network
     model = Sequential()
-    model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width , img_height)))
+    # model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width , img_height)))
+    model.add(ZeroPadding2D((1, 1), input_shape=input_shape))
 
     model.add(Convolution2D(64, 3, 3, activation='relu', name='conv1_1'))
     model.add(ZeroPadding2D((1, 1)))

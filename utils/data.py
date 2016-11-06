@@ -1,4 +1,3 @@
-import os
 import myutils
 import numpy as np
 import math
@@ -41,18 +40,18 @@ def split_data(json_file, data_dir, images_dir='images',
     ids, data = recipes_ids(data_dir + json_file)
 
     images_path = data_dir + images_dir + '/'
-    train_path = data_dir  + 'train/'
-    test_path = data_dir  + 'test/'
+    train_path = data_dir + 'train/'
+    test_path = data_dir + 'test/'
 
     if (revert):
-       print 'TODO Reverting...'
+        print 'TODO Reverting...'
     else:
         if myutils.directory_exists(train_path) or myutils.directory_exists(test_path):
             print 'Train or/and test folder already there. Returning...'
             return train_path, test_path
 
         data_train = {}
-        data_test  = {}
+        data_test = {}
 
         size_dataset = len(data)
         samples_train = int(math.ceil(train * size_dataset))

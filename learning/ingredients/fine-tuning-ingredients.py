@@ -10,11 +10,10 @@ def main():
     K.set_image_dim_ordering('th')
 
     train_path, test_path, data_train, data_test = data.split_data('recipes-ctc.json', '../data/recipes-ctc/', train=0.8)
-    input_tensor, input_ingredients = data.load(data_train, train_path, 224, 224)
+    input_tensor, input_ingredients = data.load(data_train, train_path, img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT)
 
     nb_epoch = 50
     validation_split = 0.1  # 10 % of train data for validation
-
 
     classifier2.save_bottlebeck_features(C.file_bottleneck_features_train, C.file_bottleneck_features_validation,
                                          img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
