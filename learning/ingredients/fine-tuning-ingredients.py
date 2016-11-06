@@ -1,39 +1,38 @@
 
 import classifier_from_little_data_script_2 as classifier2
 import classifier_from_little_data_script_3 as classifier3
-import constants
-from keras.applications import vgg16
+import constants as C
+from utils import data
+from keras import backend as K
+
 
 def main():
+    K.set_image_dim_ordering('th')
+
+    train_path, test_path, data_train, data_test = data.split_data('recipes-ctc.json', '../data/recipes-ctc/', train=0.8)
+    input_tensor, input_ingredients = data.load(data_train, train_path, 224, 224)
 
     nb_epoch = 50
     validation_split = 0.1  # 10 % of train data for validation
-    input_ingredients = []
-    input_train = []
-    input_val = []
 
-    # TODO read ingredients from json file and transform in a vector[total_number_of_ingredients]
-    # TODO split data in train/validation and test
-    # TODO read data
 
-    classifier2.save_bottlebeck_features(constants.file_bottleneck_features_train, constants.file_bottleneck_features_validation,
-                                         img_width=constants.IMG_WIDTH, img_height=constants.IMG_HEIGHT,
-                                         input_data_train=input_train, input_data_val=input_val,
-                                         batch_size=constants.BATCH_SIZE)
+    classifier2.save_bottlebeck_features(C.file_bottleneck_features_train, C.file_bottleneck_features_validation,
+                                         img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
+                                         input_data_train=input_tensor,
+                                         batch_size=C.BATCH_SIZE)
 
-    classifier2.train_top_model(constants.file_bottleneck_features_train, constants.file_bottleneck_features_validation,
-                                constants.top_model_weights_path,
-                                nb_epoch, batch_size=constants.BATCH_SIZE, validation_split=validation_split,
+    classifier2.train_top_model(C.file_bottleneck_features_train, C.file_bottleneck_features_validation,
+                                C.top_model_weights_path,
+                                nb_epoch, batch_size=C.BATCH_SIZE, validation_split=validation_split,
                                 ingredients=input_ingredients)
 
 
-    classifier3.fine_tuning(constants.top_model_weights_path,
-                            img_width=constants.IMG_WIDTH, img_height=constants.IMG_HEIGHT,
-                            batch_size=constants.BATCH_SIZE, nb_epoch=nb_epoch,
+    classifier3.fine_tuning(C.top_model_weights_path,
+                            img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
+                            batch_size=C.BATCH_SIZE, nb_epoch=nb_epoch,
                             ingredients=input_ingredients,
-                            train_data=input_train, validation_split=validation_split)
+                            train_data=input_tensor, validation_split=validation_split)
 
-    vgg16.preprocess_input()
 
 if __name__ == '__main__':
     main()

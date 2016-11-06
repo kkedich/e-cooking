@@ -11,7 +11,8 @@ weights_path = 'vgg16_weights.h5'
 
 
 def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_features_validation,
-                             input_data_train, input_data_val,
+                             input_data_train,
+                             # input_data_val,
                              batch_size,
                              img_width, img_height):
     # TODO first without image augmentation

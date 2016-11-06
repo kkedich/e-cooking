@@ -145,3 +145,4 @@ def fine_tuning(top_model_weights_path,
               nb_epoch=nb_epoch, batch_size=batch_size,
               validation_split=validation_split)
 
+    model.save('vgg16_model_ingredients.h5')
