@@ -1,7 +1,6 @@
 import math
 import urllib2
 from string import ascii_lowercase
-
 from utils import myutils as utils
 
 

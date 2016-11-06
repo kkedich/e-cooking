@@ -56,13 +56,22 @@ def load_number(filename):
     return number
 
 
+def directory_exists(name):
+    directory = os.path.dirname(name)
+    return os.path.exists(directory)
+
+
 def create_directory(name):
-    directory= os.path.dirname(name)
+    directory = os.path.dirname(name)
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+
 def move(file, source, destination):
-
     create_directory(destination)
-
     shutil.move(source + file, destination + file)
+
+
+def copy(file, source, destination):
+    create_directory(destination)
+    shutil.copy(source + file, destination + file)

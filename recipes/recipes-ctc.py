@@ -8,7 +8,6 @@ import math
 import requests
 import time
 from string import ascii_lowercase
-
 from utils import myutils as utils
 
 PATH_IMAGES = './data/recipes-ctc/images/'
