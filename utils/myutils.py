@@ -146,4 +146,6 @@ def my_list_pictures(directory, ext='jpg|jpeg|bmp|png'):
     """My version of list_pictures of image.py from Keras. Keras function doesn't match with .JPG.
        Lower case added."""
     return [os.path.join(directory, f) for f in sorted(os.listdir(directory))
+
             if os.path.isfile(os.path.join(directory, f)) and re.match('([\w]+\.(?:' + ext + '))', f.lower())]
+
