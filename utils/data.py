@@ -43,7 +43,7 @@ def split_data(json_file, data_dir, images_dir='images',
     train_path = data_dir + 'train/'
     test_path = data_dir + 'test/'
 
-    if (revert):
+    if revert:
         print 'TODO Reverting...'
     else:
         if myutils.directory_exists(train_path) or myutils.directory_exists(test_path):
@@ -82,6 +82,18 @@ def split_data(json_file, data_dir, images_dir='images',
         return train_path, test_path, data_train, data_test
 
 
+def list_ingredients(array, list_of_all_ingredients):
+    """Returns a list of ingredients (names) in array.
+       array: of 0s and 1s indicating the presence or not of a particular ingredient
+       list_of_all_ingredients: list with all names of ingredients."""
+    names = []
+    for index in range(0, len(array)):
+        if array[index] == 1:
+            names.append(list_of_all_ingredients[index])
+
+    return names
+
+
 def ingredients_vector(recipe_ingredients, ingredients_list,
                        random=False, nb_ingredients=100, size=1):
     """ Returns a vector of size len(ingredients_list) that indicate the presence or not of each
@@ -107,6 +119,22 @@ def preprocess_image(image_path, img_height=224, img_width=224):
     img = np.expand_dims(img, axis=0)
     img = vgg16.preprocess_input(img)
     return img
+
+
+def load_images(dir_images, img_height, img_width):
+    """Load only images in dir_images. Returns a Keras tensor combining all images."""
+    images = myutils.my_list_pictures(dir_images)
+    print 'Loading images ({}): {}'.format(len(images), images)
+
+    # Creates tensor representation for each image
+    list = []
+    for image in images:
+        current_image = K.variable(preprocess_image(image, img_height, img_width))
+        list.append(current_image)
+
+    # combine the 3 images into a single Keras tensor
+    input_tensor = K.concatenate(list, axis=0)
+    return input_tensor, images
 
 
 def load(data, dir_images, img_height, img_width):
@@ -139,9 +167,11 @@ def load(data, dir_images, img_height, img_width):
 
 
 def main():
-    train_path, test_path, data_train, data_test = split_data('recipes-ctc.json', '../data/recipes-ctc/', train=0.8)
+    # train_path, test_path, data_train, data_test = split_data('recipes-ctc.json', '../data/recipes-ctc/', train=0.8)
+    #
+    # load(data_train, train_path, 224, 224)
 
-    load(data_train, train_path, 224, 224)
+    load_images('../data/img_teste', 224, 224)
 
 if __name__ == '__main__':
     main()
