@@ -22,7 +22,8 @@ weights_path = 'vgg16_weights.h5'
 # nb_validation_samples = 300
 # nb_epoch = 50
 
-def fine_tuning(top_model_weights_path,
+
+def fine_tuning(top_model_weights_path, final_vgg16_model,
                 img_width, img_height,
                 train_data, ingredients,
                 nb_epoch, batch_size, validation_split):
@@ -157,4 +158,4 @@ def fine_tuning(top_model_weights_path,
 
     result.process(history, './ingredients/')
 
-    model.save('vgg16_model_ingredients.h5')
+    model.save(final_vgg16_model)
