@@ -124,16 +124,23 @@ def remove_duplicates(file_name, path_data='../data/', folder='recipes-ctc'):
         print 'Saving data...'
         myutils.save_json(path_output_json_file, data)
 
-
-def main():
-
-    # Remove duplicates
-    # remove_duplicates('pre-processed-v1-recipes-ctc.json', folder='recipes-ctc')
-
-    # Recipes fn
-    remove_duplicates('recipes-fn.json', folder='recipes-fn')
-
-
-
-if __name__ == '__main__':
-    main()
+#
+# def main():
+#
+#     # Remove duplicates
+#     # remove_duplicates('pre-processed-v1-recipes-ctc.json', folder='recipes-ctc')
+#
+#     # Recipes fn
+#     # remove_duplicates('recipes-fn.json', folder='recipes-fn')
+#
+#     # data = myutils.load_json('../data/recipes-fn/pre-processed-recipes-fn.json')
+#     #
+#     # list = ['200133', '232752' ]
+#     # remove_recipe(list, data, '../data/recipes-fn/')
+#     #
+#     # myutils.save_json('../data/recipes-fn/final-pre-processed-recipes-fn.json', data)
+#     # data = myutils.load_json('../data/recipes-fn/final-pre-processed-recipes-fn.json')
+#     # print 'len = {}'.format(len(data))
+#
+# if __name__ == '__main__':
+#     main()

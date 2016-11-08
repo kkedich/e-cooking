@@ -17,6 +17,23 @@ def load_json(filename):
     return data
 
 
+def merge_json_files(file1, file2, output_file):
+    data1 = load_json(file1)
+    data2 = load_json(file2)
+
+    # Concatenate data2 to merge_data (data1)
+    merge_data = {}
+    for dict in data1:
+        merge_data[dict] = data1[dict]
+
+    for dict in data2:
+        merge_data[dict] = data2[dict]
+
+    save_json(output_file, merge_data)
+
+    print 'File1={}, file2={}, merge file={}.'.format(len(data1), len(data2), len(merge_data))
+
+
 def save_file(filename, data_list):
     output_file = open(filename, "w")
     output_file.write(len(data_list).__str__() + "\n")
@@ -76,11 +93,13 @@ def copy(file, source, destination):
     create_directory(destination)
     shutil.copy(source + file, destination + file)
 
+
 def cleanhtml(raw_html):
   cleanr = re.compile('<.*?>')
   cleantext = re.sub(cleanr, '', raw_html)
 
   return cleantext
+
 
 def clean_recipes_terms(ingredient):
   ingredient = re.sub("\d+", "", ingredient)
@@ -142,10 +161,10 @@ def clean_recipes_terms(ingredient):
   ingredient = re.sub("head", "", ingredient)
   return ingredient
 
+
 def my_list_pictures(directory, ext='jpg|jpeg|bmp|png'):
     """My version of list_pictures of image.py from Keras. Keras function doesn't match with .JPG.
        Lower case added."""
     return [os.path.join(directory, f) for f in sorted(os.listdir(directory))
-
             if os.path.isfile(os.path.join(directory, f)) and re.match('([\w]+\.(?:' + ext + '))', f.lower())]
 
