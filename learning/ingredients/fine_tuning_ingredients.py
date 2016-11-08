@@ -38,7 +38,9 @@ def predict(model_file, dir_images, list_of_all_ingredients):
 def main():
     K.set_image_dim_ordering('th')
 
+    # Generate data for training and test
     train_path, test_path, data_train, data_test = data.split_data('recipes-ctc.json', '../data/recipes-ctc/', train=0.8)
+    # Load images and ingredients array
     input_tensor, input_ingredients = data.load(data_train, train_path, img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT)
 
     nb_epoch = 50

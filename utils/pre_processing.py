@@ -28,7 +28,7 @@ def remove_recipe(recipes_to_be_removed, json_data, path_data):
 
 
 def remove_duplicates(file_name, path_data='../data/', folder='recipes-ctc'):
-    ''' Remove recipes that have (image) duplicates in the dataset.'''
+    """ Remove recipes that have (image) duplicates in the dataset."""
 
     path_images = path_data + folder + '/images/'
     path_json_file = path_data + folder + '/' + file_name
@@ -56,7 +56,6 @@ def remove_duplicates(file_name, path_data='../data/', folder='recipes-ctc'):
             recipes_hash[recipe]['size'] = size_image
 
         print 'All hashes were computed. :D'
-
 
         # Verifies if there are duplicates
         count = 0
@@ -115,7 +114,6 @@ def remove_duplicates(file_name, path_data='../data/', folder='recipes-ctc'):
                     id_recipe = id_recipe.lstrip().rstrip()
                     recipes_to_be_removed.append(id_recipe)
                     print 'Included id={} to be removed'.format(id_recipe)
-
 
         # Remove recipes
         remove_recipe(recipes_to_be_removed, data, (path_data + folder + '/'))
