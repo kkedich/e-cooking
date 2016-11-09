@@ -2,6 +2,7 @@ import myutils
 import numpy as np
 import math
 import random
+import ingredients_utils
 
 from keras.preprocessing.image import load_img, img_to_array
 from keras.applications import vgg16
@@ -110,18 +111,28 @@ def ingredients_vector(recipe_ingredients, ingredients_list,
     if random_values:
         return np.random.random_integers(low=0, high=1, size=(size, nb_ingredients))
     else:
-        ingr_word_list = []
+        ingr_word_complete = []
 
         ingredient_content = ""
-        for ingredient in recipe_ingredients:
-            ingredient = myutils.cleanhtml(ingredient)
-            ingredient = myutils.clean_recipes_terms(ingredient)
-            ingredient_content = ingredient_content + ' ' + ingredient
 
-            ingr_word_list.append(ingredient)
+        index = 0
+        for ingredients in ingredients_list:
+            for ingredient_item in ingredients:
+                ingredient_item = ingredients_utils.cleanhtml(ingredient_item)
+                ingredient_item = ingredients_utils.clean_recipes_terms(ingredient_item)
+                ingredient_content = ingredient_content + ' ' + ingredient_item
 
-        cv = CountVectorizer(vocabulary=ingredients_list)
-        count = cv.fit_transform(ingr_word_list).toarray()
+                ingr_word_array = ingredient_content.split()
+                ingr_word_array[:] = ingredients_utils.stem_words(ingr_word_array)
+                ingredient_content = " ".join(ingr_word_array)
+
+            ingr_word_complete.append(ingredient_content)
+        
+        cv = CountVectorizer(vocabulary=recipe_ingredients)
+        count = cv.fit_transform(ingr_word_complete).toarray()
+
+        for vector in count:
+            vector[vector > 0] = 1
 
         return np.array(count)
 
