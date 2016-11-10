@@ -1,6 +1,7 @@
-import myutils
 import hashlib
 import os
+
+import myutils
 
 
 def remove_recipe(recipes_to_be_removed, json_data, path_data):

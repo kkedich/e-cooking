@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -22,7 +24,8 @@ def process(history, directory):
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='upper left')
     # plt.show()
-    plt.savefig(directory + 'history-accuracy.png')
+    # plt.savefig(directory + 'history-accuracy.png')
+    plt.savefig('history-accuracy.png')
 
     # Summarize history for loss
     plt.plot(history.history['loss'])
@@ -32,4 +35,5 @@ def process(history, directory):
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='upper left')
     # plt.show()
-    plt.savefig(directory + 'history-loss.png')
+    # plt.savefig(directory + 'history-loss.png')
+    plt.savefig('history-loss.png')

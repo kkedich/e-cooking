@@ -25,12 +25,6 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
     else:
         input_shape = (img_width, img_height, 3)
 
-    # if not K.is_keras_tensor(input_data_train):
-    #     img_input = Input(tensor=input_data_train, shape=input_shape)
-    # else:
-    #     img_input = input_data_train
-
-
     # Build the VGG16 network
     model = Sequential()
     # model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width , img_height)))
@@ -94,8 +88,10 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
     #         class_mode=None,
     #         shuffle=False)
     # bottleneck_features_train = model.predict_generator(generator, constants.NB_TRAIN_SAMPLES)
-    bottleneck_features_train = model.predict(input_data_train, batch_size)
+    print 'Predict: generating bottleneck features.'
+    bottleneck_features_train = model.predict(input_data_train, batch_size, verbose=1)
     np.save(open(file_bottleneck_features_train, 'w'), bottleneck_features_train)
+    print 'Bottleneck features saved.'
 
     # generator = datagen.flow_from_directory(
     #         constants.VALIDATION_DATA_DIR,
@@ -111,7 +107,7 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
 
 def train_top_model(file_bottleneck_features_train, file_bottleneck_features_validation, top_model_weights_path,
                     nb_epoch, batch_size, validation_split,
-                    ingredients):
+                    ingredients, dropout=0.5, neurons_last_layer=256):
 
     train_data = np.load(open(file_bottleneck_features_train))
     # train_labels = np.array([0] * (constants.NB_TRAIN_SAMPLES / 2) + [1] * (constants.NB_TRAIN_SAMPLES / 2))
@@ -119,21 +115,26 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
     # validation_data = np.load(open(file_bottleneck_features_validation))
     # validation_labels = np.array([0] * (constants.NB_VALIDATION_SAMPLES / 2) + [1] * (constants.NB_VALIDATION_SAMPLES / 2))
 
+    nb_images, nb_ingredients = ingredients.shape
+    print 'number of ingredients={}'.format(nb_ingredients)
+    print 'input size ={}'.format(nb_images)
+    print 'input_shape=', train_data.shape[1:]
+
     model = Sequential()
     model.add(Flatten(input_shape=train_data.shape[1:]))
-    model.add(Dense(256, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(len(ingredients), activation='sigmoid', name='ingredients'))
+    model.add(Dense(neurons_last_layer, activation='relu'))
+    model.add(Dropout(dropout))
+    model.add(Dense(nb_ingredients, activation='sigmoid')) #, name='ingredients'
 
     model.compile(optimizer='adam',
-                  loss={'ingredients': 'binary_crossentropy'}, metrics=['accuracy'])
+                  loss='binary_crossentropy', metrics=['accuracy']) #loss={'ingredients': 'binary_crossentropy'}
 
     # model.fit(train_data, train_labels,
     #           nb_epoch=nb_epoch, batch_size=batch_size,
     #           validation_data=(validation_data, validation_labels))
 
     model.fit(train_data,
-              y={'ingredients': ingredients},
+              y=ingredients,
               nb_epoch=nb_epoch, batch_size=batch_size,
               validation_split=validation_split)
 

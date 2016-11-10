@@ -1,14 +1,15 @@
 
-# import numpy as np
 # from keras.preprocessing.image import ImageDataGenerator
-import os
-import h5py
 from keras import optimizers
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend as K
+
 from learning import result
+
+import os
+import h5py
 
 # path to the model weights files.
 weights_path = 'vgg16_weights.h5'
@@ -26,7 +27,8 @@ weights_path = 'vgg16_weights.h5'
 def fine_tuning(top_model_weights_path, final_vgg16_model,
                 img_width, img_height,
                 train_data, ingredients,
-                nb_epoch, batch_size, validation_split):
+                nb_epoch, batch_size, validation_split,
+                dropout=0.5, neurons_last_layer=256):
     # Determine proper input shape
     if K.image_dim_ordering() == 'th':
         input_shape = (3, img_width, img_height)
@@ -95,12 +97,17 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     f.close()
     print('Model loaded.')
 
+    nb_images, nb_ingredients = ingredients.shape
+    print 'number of ingredients={}'.format(nb_ingredients)
+    print 'input size ={}'.format(nb_images)
+    print 'model.output_shape=', model.output_shape[1:]
+
     # build a classifier model to put on top of the convolutional model
     top_model = Sequential()
     top_model.add(Flatten(input_shape=model.output_shape[1:]))
-    top_model.add(Dense(256, activation='relu'))
-    top_model.add(Dropout(0.5))
-    top_model.add(Dense(len(ingredients), activation='sigmoid', name='ingredients'))
+    top_model.add(Dense(neurons_last_layer, activation='relu'))  # before was 256
+    top_model.add(Dropout(dropout))
+    top_model.add(Dense(nb_ingredients, activation='sigmoid')) #, name='ingredients'
 
     # note that it is necessary to start with a fully-trained classifier, including the top classifier,
     # in order to successfully do fine-tuning
@@ -118,8 +125,13 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     #               optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
     #               metrics=['accuracy'])
 
+    for layer in model.layers:
+        print layer.get_config()
+
+    print '\n'
+    model.summary()
     model.compile(optimizer=optimizers.Adam(lr=1e-4),
-                  loss={'ingredients': 'binary_crossentropy'},
+                  loss='binary_crossentropy', # loss={'ingredients': 'binary_crossentropy'},
                   metrics=['accuracy'])
 
     # prepare data augmentation configuration
@@ -152,10 +164,10 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     #         nb_val_samples=nb_validation_samples)
 
     history = model.fit(train_data,
-                        y={'ingredients': ingredients},
+                        y=ingredients, # y={'ingredients': ingredients}
                         nb_epoch=nb_epoch, batch_size=batch_size,
                         validation_split=validation_split)
 
-    result.process(history, './ingredients/')
+    result.process(history, '../e-cooking/')
 
     model.save(final_vgg16_model)
