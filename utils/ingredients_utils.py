@@ -3,6 +3,11 @@ import htmlentitydefs
 
 from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
+# from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet as wn
+from nltk import pos_tag, word_tokenize
+
 
 
 def clean(text):
@@ -16,9 +21,6 @@ def clean(text):
 
     # Clean some recipe terms
     cleantext = clean_recipes_terms(cleantext)
-
-    # TODO ainda sobra umas palavras de uma letra apenas, nao sei se isso eh erro no processo de limpeza anteriores
-    # ou se eh algo que sobrou mesmo das palavras
 
     return cleantext
 
@@ -75,6 +77,7 @@ def clean_recipes_terms(ingredient):
     ingredient = re.sub("teaspoon", "", ingredient)
     ingredient = re.sub("spoons", "", ingredient)
     ingredient = re.sub("spoon", "", ingredient)
+    ingredient = re.sub("scoop", "", ingredient)
     ingredient = re.sub("finely", "", ingredient)
     ingredient = re.sub("pounded", "", ingredient)
     ingredient = re.sub("pound", "", ingredient)
@@ -120,9 +123,8 @@ def clean_recipes_terms(ingredient):
     ingredient = re.sub("all-purpose", "", ingredient)
     ingredient = re.sub("heads", "", ingredient)
     ingredient = re.sub("head", "", ingredient)
-
-    ingredient = re.sub("yes", "", ingredient)
-    ingredient = re.sub("no", "", ingredient)
+    ingredient = re.sub("recipe", "", ingredient)
+    ingredient = re.sub("cooking", "", ingredient)
 
     return ingredient
 
@@ -138,3 +140,73 @@ def remove_stop_words(words):
     filtered_words = [word for word in words if word not in stopwords.words('english')]
 
     return filtered_words
+
+
+def lemmatize(words, pos='n'):
+    """Lemmatize verbs and nouns.
+       Update: lemmatize of verbs is not done, since in the forward steps the words are considered nouns.
+       Example: loving ->> lemmatizer ->> love. Love is a noun.
+       ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'"""
+    wnl = WordNetLemmatizer()
+    filtered_words = [wnl.lemmatize(word, pos) for word in words]  # lemmatize nouns
+    # words[:] = [wnl.lemmatize(word, 'v') for word in words]  # lemmatize verbs
+
+    return filtered_words
+
+
+# http://stackoverflow.com/questions/25534214/nltk-wordnet-lemmatizer-shouldnt-it-lemmatize-all-inflections-of-a-word
+def is_noun(tag):
+    return tag in ['NN', 'NNS', 'NNP', 'NNPS']
+
+
+def is_verb(tag):
+    return tag in ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+
+
+def is_adverb(tag):
+    return tag in ['RB', 'RBR', 'RBS']
+
+
+def is_adjective(tag):
+    return tag in ['JJ', 'JJR', 'JJS']
+
+
+def penn_to_wn(tag):
+    if is_adjective(tag):
+        return wn.ADJ
+    elif is_noun(tag):
+        return wn.NOUN
+    elif is_adverb(tag):
+        return wn.ADV
+    elif is_verb(tag):
+        return wn.VERB
+    return None
+
+
+def remove_speech_tags(words):
+    """Remove verbs and adverbs"""
+    words_with_tags = pos_tag(words)
+    print words_with_tags
+
+    filtered_words = []
+    for current_word in words_with_tags:
+        # if current_word[0] == "reduced":
+        #     print 'Problema aqui <{}> tag: <{}>'.format(current_word[0], current_word[1])
+
+        if not is_verb(current_word[1]) and not is_adverb(current_word[1]):
+            filtered_words.append(current_word[0])
+
+    # [current for current in words_with_tags if current[1] != 'NN']
+    # print filtered_words
+    return filtered_words
+
+
+# def remove_adverbs(words):
+#     words_with_tags = pos_tag(words)
+#
+#     filtered_words = []
+#     for current_word in words_with_tags:
+#         if not is_adverb(current_word[1]):
+#             filtered_words.append(current_word[0])
+#
+#     return filtered_words
