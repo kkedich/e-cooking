@@ -124,10 +124,12 @@ def ingredients_vector(current_ingredients, list_all_ingredients, random_values=
             ingredient_content = ingredient_content + ' ' + ingredient_item
 
             ingr_word_array = ingredient_content.split()
-            ingr_word_array = ingredients_utils.stem_words(ingr_word_array)
+            ingr_word_array = ingredients_utils.remove_stop_words(ingr_word_array) # Stop words
+            ingr_word_array = ingredients_utils.stem_words(ingr_word_array) # Stemming
             ingredient_content = " ".join(ingr_word_array)
 
         ingr_word_complete.append(ingredient_content)
+        print ingredient_content
 
         cv = CountVectorizer(vocabulary=list_all_ingredients)
         count = cv.fit_transform(ingr_word_complete).toarray()
@@ -135,7 +137,6 @@ def ingredients_vector(current_ingredients, list_all_ingredients, random_values=
         for vector in count:
             vector[vector > 0] = 1
 
-        # print count
         return np.array(count)
 
 
@@ -170,21 +171,33 @@ def preprocess_image_array(array_img):
     return img
 
 
-# TODO modificar
 def load_images(dir_images, img_height, img_width):
     """Load only images in dir_images. Returns a Keras tensor combining all images."""
     images = myutils.my_list_pictures(dir_images)
     print 'Loading images ({}): {}'.format(len(images), images)
 
-    # Creates tensor representation for each image
+    input_images = None
+    # Determine proper input shape
+    if K.image_dim_ordering() == 'th':
+        # input_shape = (3, img_width, img_height)
+        input_images = np.zeros((len(images), 3, img_width, img_height), dtype=np.float32)
+    else:
+        # input_shape = (img_width, img_height, 3)
+        input_images = np.zeros((len(images), img_width, img_height, 3), dtype=np.float32)
+
     list_img = []
+    index = 0
     for image in images:
-        current_image = K.variable(preprocess_image(image, img_height, img_width))
-        list_img.append(current_image)
+        # current_image = K.variable(preprocess_image(image, img_height, img_width))
+        # list_img.append(current_image)
+        input_images[index, :, :, :] = preprocess_image(image, img_height, img_width)
+        index += 1
 
     # combine the 3 images into a single Keras tensor
-    input_tensor = K.concatenate(list_img, axis=0)
-    return input_tensor, images
+    # input_tensor = K.concatenate(list_img, axis=0)
+    input_images = preprocess_image_array(input_images)
+
+    return input_images, images
 
 
 def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredients=100):
@@ -192,7 +205,6 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
         Return a tensor combining all tensor for each image, and a numpy list of ingredients"""
     print 'Loading data...'
     list_of_all_ingredients = load_all_ingredients(file_ingredients)
-
     input_ingredients = np.zeros((len(data), len(list_of_all_ingredients)), dtype=np.uint8)
     # input_ingredients = np.zeros((len(data), nb_ingredients), dtype=np.uint8)
 
@@ -209,9 +221,7 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
     for id_recipe in data:
         # Get tensor representations of our images
         image = data[id_recipe]['file_image']
-        pre_processed_image = preprocess_image(dir_images + image, img_height, img_width)
-
-        input_images[index,:,:,:] = pre_processed_image
+        input_images[index,:,:,:] = preprocess_image(dir_images + image, img_height, img_width)
 
         # Get ingredients_input
         ingredients = data[id_recipe]['ingredients']

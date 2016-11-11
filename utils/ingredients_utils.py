@@ -2,6 +2,7 @@ import re
 import htmlentitydefs
 
 from nltk.stem.snowball import SnowballStemmer
+from nltk.corpus import stopwords
 
 
 def clean(text):
@@ -11,10 +12,13 @@ def clean(text):
 
     # Clean special characters. Also removes -, which can remove the ingredients composed name.
     # Example: extra-virgin will be extra virgin
-    cleantext = re.sub('[^A-Za-z0-9\.]+', ' ', cleantext)
+    cleantext = re.sub('[^A-Za-z0-9]+', ' ', cleantext)  # If you do not want to remove .(dot), consider [^A-Za-z0-9\.]
 
     # Clean some recipe terms
     cleantext = clean_recipes_terms(cleantext)
+
+    # TODO ainda sobra umas palavras de uma letra apenas, nao sei se isso eh erro no processo de limpeza anteriores
+    # ou se eh algo que sobrou mesmo das palavras
 
     return cleantext
 
@@ -117,6 +121,9 @@ def clean_recipes_terms(ingredient):
     ingredient = re.sub("heads", "", ingredient)
     ingredient = re.sub("head", "", ingredient)
 
+    ingredient = re.sub("yes", "", ingredient)
+    ingredient = re.sub("no", "", ingredient)
+
     return ingredient
 
 
@@ -125,3 +132,9 @@ def stem_words(words):
     words[:] = [stemmer.stem(word) for word in words]
 
     return words
+
+
+def remove_stop_words(words):
+    filtered_words = [word for word in words if word not in stopwords.words('english')]
+
+    return filtered_words
