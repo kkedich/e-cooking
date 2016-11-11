@@ -1,4 +1,6 @@
 import re
+import htmlentitydefs
+
 from nltk.stem.snowball import SnowballStemmer
 
 
@@ -7,18 +9,50 @@ def clean(text):
     # Clean html tags
     cleantext = clean_html(text.lower())
 
-    # Clean special characters
-    # cleantext = re.sub('[^A-Za-z0-9\.]+', ' ', cleantext)
+    # Clean special characters. Also removes -, which can remove the ingredients composed name.
+    # Example: extra-virgin will be extra virgin
+    cleantext = re.sub('[^A-Za-z0-9\.]+', ' ', cleantext)
 
+    # Clean some recipe terms
     cleantext = clean_recipes_terms(cleantext)
 
     return cleantext
+
+
+def clean_htmlentities(text):
+    """Removes HTML or XML character references and entities from a text string.
+       From: http://stackoverflow.com/questions/57708/convert-xml-html-entities-into-unicode-string-in-python
+       @param text The HTML (or XML) source text.
+       @return The plain text, as a Unicode string, if necessary.
+    """
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return unichr(int(text[3:-1], 16))
+                else:
+                    return unichr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text  # leave as is
+
+    return re.sub("&#?\w+;", fixup, text)
 
 
 def clean_html(raw_html):
     """ Remove html tags from a text """
     cleanr = re.compile('<.*?>')
     cleantext = re.sub(cleanr, '', raw_html)
+
+    cleantext = clean_htmlentities(cleantext)
 
     return cleantext
 
