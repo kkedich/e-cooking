@@ -118,20 +118,16 @@ def ingredients_vector(current_ingredients, list_all_ingredients, random_values=
         ingr_word_complete = []
         ingredient_content = ""
 
-        index = 0
+        # index = 0
         for ingredient in current_ingredients:
-            print ingredient
-
             ingredient_item = ingredients_utils.clean(ingredient)
-            # ingredient_item = ingredients_utils.clean_recipes_terms(ingredient_item)
             ingredient_content = ingredient_content + ' ' + ingredient_item
 
             ingr_word_array = ingredient_content.split()
-            ingr_word_array[:] = ingredients_utils.stem_words(ingr_word_array)
+            ingr_word_array = ingredients_utils.stem_words(ingr_word_array)
             ingredient_content = " ".join(ingr_word_array)
-            print ingredient_content
 
-            ingr_word_complete.append(ingredient_content)
+        ingr_word_complete.append(ingredient_content)
 
         cv = CountVectorizer(vocabulary=list_all_ingredients)
         count = cv.fit_transform(ingr_word_complete).toarray()
@@ -139,8 +135,7 @@ def ingredients_vector(current_ingredients, list_all_ingredients, random_values=
         for vector in count:
             vector[vector > 0] = 1
 
-        print count.shape
-
+        # print count
         return np.array(count)
 
 
@@ -215,15 +210,11 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
         # Get tensor representations of our images
         image = data[id_recipe]['file_image']
         pre_processed_image = preprocess_image(dir_images + image, img_height, img_width)
-        # current_image = K.variable(pre_processed_image)
-        # list_images.append(current_image)
-        # list_images.append(pre_processed_image)
 
         input_images[index,:,:,:] = pre_processed_image
 
         # Get ingredients_input
         ingredients = data[id_recipe]['ingredients']
-        print ingredients
         # if pre-processing of ingredients is ok, use this
         input_ingredients[index, :] = ingredients_vector(ingredients, list_of_all_ingredients)
         # if pre-processing of ingredients is not ready yet, use this
@@ -231,9 +222,6 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
 
         index += 1
 
-    # combine the 3 images into a single Keras tensor
-    # input_tensor = K.concatenate([base_image, style_reference_image], axis=0)
-    # input_tensor = K.concatenate(list_images, axis=0)
     print 'Shape before pre-process(vgg16): {}'.format(input_images.shape)
     input_images = preprocess_image_array(input_images)
     print 'Shape after pre-process(vgg16): {}'.format(input_images.shape)
