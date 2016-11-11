@@ -5,9 +5,8 @@ from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
 # from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from nltk.corpus import wordnet as wn
-from nltk import pos_tag, word_tokenize
-
+# from nltk.corpus import wordnet as wn
+from nltk import pos_tag
 
 
 def clean(text):
@@ -171,22 +170,22 @@ def is_adjective(tag):
     return tag in ['JJ', 'JJR', 'JJS']
 
 
-def penn_to_wn(tag):
-    if is_adjective(tag):
-        return wn.ADJ
-    elif is_noun(tag):
-        return wn.NOUN
-    elif is_adverb(tag):
-        return wn.ADV
-    elif is_verb(tag):
-        return wn.VERB
-    return None
+# def penn_to_wn(tag):
+#     if is_adjective(tag):
+#         return wn.ADJ
+#     elif is_noun(tag):
+#         return wn.NOUN
+#     elif is_adverb(tag):
+#         return wn.ADV
+#     elif is_verb(tag):
+#         return wn.VERB
+#     return None
 
 
 def remove_speech_tags(words):
     """Remove verbs and adverbs"""
     words_with_tags = pos_tag(words)
-    print words_with_tags
+    # print words_with_tags
 
     filtered_words = []
     for current_word in words_with_tags:

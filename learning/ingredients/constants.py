@@ -1,6 +1,6 @@
 
 IMG_WIDTH, IMG_HEIGHT = 224, 224  # Dimensions of our images.
-BATCH_SIZE = 32
+# BATCH_SIZE = 32
 
 # Dataset variables
 TRAIN_DATA_DIR = 'data/train'

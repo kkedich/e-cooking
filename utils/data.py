@@ -118,7 +118,6 @@ def ingredients_vector(current_ingredients, list_all_ingredients, random_values=
         ingr_word_complete = []
         ingredient_content = ""
 
-        # index = 0
         for ingredient in current_ingredients:
             ingredient_item = ingredients_utils.clean(ingredient)
             ingredient_content = ingredient_content + ' ' + ingredient_item
@@ -126,10 +125,12 @@ def ingredients_vector(current_ingredients, list_all_ingredients, random_values=
             ingr_word_array = ingredient_content.split()
             ingr_word_array = ingredients_utils.remove_stop_words(ingr_word_array) # Stop words
             ingr_word_array = ingredients_utils.stem_words(ingr_word_array) # Stemming
+
+            # TODO quando arrumar a lista de ingredientes, fazer o mesmo pre-processamento aqui
+
             ingredient_content = " ".join(ingr_word_array)
 
         ingr_word_complete.append(ingredient_content)
-        print ingredient_content
 
         cv = CountVectorizer(vocabulary=list_all_ingredients)
         count = cv.fit_transform(ingr_word_complete).toarray()
@@ -150,7 +151,7 @@ def load_all_ingredients(file='../data/ingredients.txt'):
     for i in ingredients_count:
         ingredients.append(i.split(';')[0])
 
-    print 'Loaded {} ingredients.'.format(len(ingredients))
+    print 'Loaded {} ingredients to generate our vector.'.format(len(ingredients))
     return ingredients
 
 
@@ -211,15 +212,12 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
     input_images = None
     # Determine proper input shape
     if K.image_dim_ordering() == 'th':
-        # input_shape = (3, img_width, img_height)
-        input_images = np.zeros((len(data), 3, img_width, img_height), dtype=np.float32)
+        input_images = np.zeros((len(data), 3, img_width, img_height), dtype=np.float32) #(3, img_width, img_height)
     else:
-        # input_shape = (img_width, img_height, 3)
-        input_images = np.zeros((len(data), img_width, img_height, 3), dtype=np.float32)
+        input_images = np.zeros((len(data), img_width, img_height, 3), dtype=np.float32) #(img_width, img_height, 3)
 
     index = 0
     for id_recipe in data:
-        # Get tensor representations of our images
         image = data[id_recipe]['file_image']
         input_images[index,:,:,:] = preprocess_image(dir_images + image, img_height, img_width)
 
@@ -227,12 +225,10 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
         ingredients = data[id_recipe]['ingredients']
         # if pre-processing of ingredients is ok, use this
         input_ingredients[index, :] = ingredients_vector(ingredients, list_of_all_ingredients)
-        # if pre-processing of ingredients is not ready yet, use this
         # input_ingredients[index, :] = ingredients_vector(ingredients, list_of_all_ingredients, random_values=True)
 
         index += 1
 
-    print 'Shape before pre-process(vgg16): {}'.format(input_images.shape)
     input_images = preprocess_image_array(input_images)
     print 'Shape after pre-process(vgg16): {}'.format(input_images.shape)
 

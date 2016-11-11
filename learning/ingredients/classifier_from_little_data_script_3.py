@@ -3,7 +3,8 @@
 from keras import optimizers
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
-from keras.layers import Activation, Dropout, Flatten, Dense
+# from keras.layers import Activation, \
+from keras.layers import Dropout, Flatten, Dense
 from keras import backend as K
 
 from learning import result
@@ -168,6 +169,6 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
                         nb_epoch=nb_epoch, batch_size=batch_size,
                         validation_split=validation_split)
 
-    result.process(history, '../e-cooking/')
-
     model.save(final_vgg16_model)
+
+    result.process(history, '../e-cooking/')

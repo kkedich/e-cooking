@@ -6,9 +6,9 @@ First, you must install Docker from [here](https://www.docker.com/what-docker).
 **Images**
 
 + **CPU**: `kbogdan/docker_dl_up:cpu`
-    This image was created from the image provided by [saiprashanths](https://github.com/saiprashanths/dl-docker). In our version TensorFlow, Keras, and other libraries were updated (e.g. Numpy) 
+    This image was created from the image provided by [saiprashanths](https://github.com/saiprashanths/dl-docker). In our version TensorFlow, Keras, and other libraries were updated (e.g. Numpy). Update: nltk installed. 
 + **GPU**:  `kbogdan/cuda-keras-tf:latest`
-    This image was created from [here](https://github.com/Kaixhin/dockerfiles/tree/master/cuda-keras/cuda_v7.5). In our version, TensorFlow and other libraries were installed (e.g. Numpy, SciPy, Cython).
+    This image was created from [here](https://github.com/Kaixhin/dockerfiles/tree/master/cuda-keras/cuda_v7.5). In our version, TensorFlow and other libraries were installed (e.g. Numpy, SciPy, Cython). Update: nltk installed.
 
 Once Docker is installed, you can follow the steps:
 
