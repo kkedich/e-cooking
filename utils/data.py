@@ -1,3 +1,4 @@
+
 import math
 import numpy as np
 import random
@@ -32,6 +33,33 @@ def copy_images(source, destination, data):
         myutils.copy(image, source, destination)
 
     print 'Copy files ({}) from <{}> to <{}>: OK'.format(len(data), source, destination)
+
+
+def sample(json_file, data_dir, number_samples=5, images_dir='images'):
+    """Get sample: first <number_samples> of recipes dataset"""
+    images_path = data_dir + images_dir + '/'
+    new_images_path = data_dir + 'sample-images/'
+
+    # Loading test and train data
+    full_data = myutils.load_json(data_dir + json_file)
+
+    # Get first recipes for the sample
+    sample = {}
+    count = 0
+    for recipe in full_data:
+        if count == number_samples:
+            break
+
+        sample[recipe] = full_data[recipe]
+        count += 1
+
+    print 'Sample: {} recipes'.format(count)
+    myutils.save_json(data_dir + 'sample-{}.json'.format(str(count)), sample)
+
+    print 'Copying image files...'
+    copy_images(images_path, new_images_path, sample)
+
+    return sample, new_images_path
 
 
 def split_data(json_file, data_dir, images_dir='images',
@@ -158,6 +186,7 @@ def load_all_ingredients(file='../data/ingredients.txt'):
 # Util function to open, resize and format pictures into appropriate tensors
 # (from an example in the keras documentation)
 def preprocess_image(image_path, img_height=224, img_width=224):
+    #print 'image: ', image_path
     img = load_img(image_path, target_size=(img_height, img_width))  # target_size=(img_nrows, img_ncols)
     img = img_to_array(img)
     # img = np.expand_dims(img, axis=0)  # parameter for the function is an array

@@ -2,6 +2,7 @@ import hashlib
 import os
 
 import myutils
+import ingredients_utils
 
 
 def remove_recipe(recipes_to_be_removed, json_data, path_data):
@@ -123,23 +124,64 @@ def remove_duplicates(file_name, path_data='../data/', folder='recipes-ctc'):
         print 'Saving data...'
         myutils.save_json(path_output_json_file, data)
 
-#
+
+def clean_dataset(json_file, data_dir, output_file):
+    """Removes html tags and html entities from the ingredients list of all recipes in <json_file>
+       json_file: file.json with the data
+       data_dir: directory in which the json_file is stored.
+       output_file: output_file in which the pre-processed data will be saved.
+    """
+    data = myutils.load_json(data_dir + json_file)
+    print 'Loaded {} recipes'.format(len(data))
+
+    for recipe in data:
+        raw_ingredients = data[recipe]['ingredients']
+
+        final_ingredients = []
+        for ingredient in raw_ingredients:
+            final_ingredients.append(ingredients_utils.clean_html(ingredient))
+
+        data[recipe]['ingredients'] = final_ingredients
+
+        print raw_ingredients
+        print 'novo:\n', final_ingredients
+        print '\n'
+
+    # Save pre-processed data
+    myutils.save_json(data_dir + output_file, data)
+    print 'Pre-processed data saved in: {}'.format(data_dir + output_file)
+
+
 # def main():
-#
-#     # Remove duplicates
-#     # remove_duplicates('pre-processed-v1-recipes-ctc.json', folder='recipes-ctc')
-#
-#     # Recipes fn
-#     # remove_duplicates('recipes-fn.json', folder='recipes-fn')
-#
-#     # data = myutils.load_json('../data/recipes-fn/pre-processed-recipes-fn.json')
-#     #
-#     # list = ['200133', '232752' ]
-#     # remove_recipe(list, data, '../data/recipes-fn/')
-#     #
-#     # myutils.save_json('../data/recipes-fn/final-pre-processed-recipes-fn.json', data)
-#     # data = myutils.load_json('../data/recipes-fn/final-pre-processed-recipes-fn.json')
-#     # print 'len = {}'.format(len(data))
-#
+
+    # Remove duplicates
+    # remove_duplicates('pre-processed-v1-recipes-ctc.json', folder='recipes-ctc')
+
+    # Recipes fn
+    # remove_duplicates('recipes-fn.json', folder='recipes-fn')
+
+    # data = myutils.load_json('../data/recipes-fn/pre-processed-recipes-fn.json')
+    #
+    # list = ['200133', '232752' ]
+    # remove_recipe(list, data, '../data/recipes-fn/')
+    #
+    # myutils.save_json('../data/recipes-fn/final-pre-processed-recipes-fn.json', data)
+    # data = myutils.load_json('../data/recipes-fn/final-pre-processed-recipes-fn.json')
+    # print 'len = {}'.format(len(data))
+
+    # 'pre-processed-full-recipes-dataset.json', './data/full-recipes-dataset/'
+    # data = myutils.load_json('../data/full-recipes-dataset/pre-processed-full-recipes-dataset.json')
+    # list = ['223876']
+    # remove_recipe(list, data, '../data/full-recipes-dataset/')
+    # myutils.save_json('../data/full-recipes-dataset/pre-processed-full-recipes-dataset-v2.json', data)
+
+    # clean_dataset('pre-processed-full-recipes-dataset-v2.json', '../data/full-recipes-dataset/',
+    #               'pre-processed-full-recipes-dataset-v3-without-html.json')
+
+    # texto = 'about \xbd small breast'
+    # texto = ingredients_utils.clean_html(texto)
+    # print texto
+
+
 # if __name__ == '__main__':
 #     main()

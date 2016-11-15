@@ -164,7 +164,6 @@ def list_recipes_urls(load=False):
     return list_recipes
 
 
-# TODO tem receitas repetidas, deixei tudo ai, para depois pre-processar isso.
 def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe, list_recipes):
     recipes_data = {}
     recipes_not_found = []
