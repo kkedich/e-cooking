@@ -2,6 +2,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from utils.myutils import save_json
+
 
 def process(history, directory):
     """ Process the history object returned by model.fit.
@@ -23,9 +25,9 @@ def process(history, directory):
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='upper left')
-    # plt.show()
     # plt.savefig(directory + 'history-accuracy.png')
     plt.savefig('history-accuracy.png')
+    plt.clf() # Clean current figure before the following plot
 
     # Summarize history for loss
     plt.plot(history.history['loss'])
@@ -34,6 +36,8 @@ def process(history, directory):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='upper left')
-    # plt.show()
     # plt.savefig(directory + 'history-loss.png')
     plt.savefig('history-loss.png')
+
+    # Save history of training
+    save_json('history.json', history)

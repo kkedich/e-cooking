@@ -10,11 +10,16 @@ NB_VALIDATION_SAMPLES = 800  # Considering all the dataset not just only one cla
 
 
 # Files bottleneck features
-file_bottleneck_features_train = 'bottleneck_features_train.npy'
-file_bottleneck_features_validation = 'bottleneck_features_validation.npy'
+file_bottleneck_features_train = 'bottleneck_features_train_v2.npy'
+file_bottleneck_features_validation = 'bottleneck_features_validation_v2.npy'
 # Model files
-top_model_weights_path = 'bottleneck_fc_model.h5'
-final_vgg16_model = 'vgg16_model_ingredients.h5'
+top_model_weights_path = 'bottleneck_fc_model_v2.h5'
+final_vgg16_model = 'vgg16_model_ingredients_v2.h5'
 
 
 MIN_VALUE = 0.5
+
+
+# TODO toda vez que usar funcao de custo atualizar esses valores, nao consegui pegar o shape com Tensor.get_shape
+NB_INGREDIENTS = 100
+NB_INPUT = 0

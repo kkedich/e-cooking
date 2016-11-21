@@ -7,6 +7,10 @@ from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend as K
 
+import tensorflow as tf
+
+from learning.my_loss_function import weighted_binary_crossentropy
+
 # Path to the model weights file.
 weights_path = 'vgg16_weights.h5'
 
@@ -107,7 +111,8 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
 
 def train_top_model(file_bottleneck_features_train, file_bottleneck_features_validation, top_model_weights_path,
                     nb_epoch, batch_size, validation_split,
-                    ingredients, dropout=0.5, neurons_last_layer=256):
+                    ingredients, dropout=0.5, neurons_last_layer=256,
+                    custom_loss=None):
 
     train_data = np.load(open(file_bottleneck_features_train))
     # train_labels = np.array([0] * (constants.NB_TRAIN_SAMPLES / 2) + [1] * (constants.NB_TRAIN_SAMPLES / 2))
@@ -126,8 +131,26 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
     model.add(Dropout(dropout))
     model.add(Dense(nb_ingredients, activation='sigmoid')) #, name='ingredients'
 
-    model.compile(optimizer='adam',
-                  loss='binary_crossentropy', metrics=['accuracy']) #loss={'ingredients': 'binary_crossentropy'}
+    # ingredients_new = tf.Variable(ingredients)
+    # ingredients_new = tf.convert_to_tensor(ingredients, dtype=tf.float32)
+    # train_data_new = tf.convert_to_tensor(train_data, dtype=train_data.dtype)
+    # # ingredients_ha = tf.placeholder(tf.float32, shape=(1024, 1024))
+    # # print ingredients_new
+    # um, dois, tres, quatro = train_data.shape
+    # ingredients_new.set_shape([nb_images, nb_ingredients])
+    # train_data_new.set_shape([um, dois, tres, quatro])
+    # print ingredients_new
+    # print train_data_new
+
+    # Define which loss function will be used
+    if custom_loss is None:
+        model.compile(optimizer='adam',
+                      loss='binary_crossentropy', metrics=['accuracy']) #loss={'ingredients': 'binary_crossentropy'}
+    else:
+        if custom_loss == 'weighted_binary_crossentropy':
+            model.compile(optimizer='adam',
+                          loss=weighted_binary_crossentropy,
+                          metrics=['accuracy'])
 
     # model.fit(train_data, train_labels,
     #           nb_epoch=nb_epoch, batch_size=batch_size,

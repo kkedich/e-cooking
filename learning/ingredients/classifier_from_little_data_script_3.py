@@ -8,6 +8,7 @@ from keras.layers import Dropout, Flatten, Dense
 from keras import backend as K
 
 from learning import result
+from learning.my_loss_function import weighted_binary_crossentropy
 
 import os
 import h5py
@@ -29,7 +30,9 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
                 img_width, img_height,
                 train_data, ingredients,
                 nb_epoch, batch_size, validation_split,
-                dropout=0.5, neurons_last_layer=256):
+                dropout=0.5, neurons_last_layer=256,
+                custom_loss=None):
+
     # Determine proper input shape
     if K.image_dim_ordering() == 'th':
         input_shape = (3, img_width, img_height)
@@ -131,11 +134,19 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
 
     print '\n'
     model.summary()
-    model.compile(optimizer=optimizers.Adam(lr=1e-4),
-                  loss='binary_crossentropy', # loss={'ingredients': 'binary_crossentropy'},
-                  metrics=['accuracy'])
 
-    # prepare data augmentation configuration
+    if custom_loss is None:
+        model.compile(optimizer=optimizers.Adam(lr=1e-4),
+                      loss='binary_crossentropy',  # loss={'ingredients': 'binary_crossentropy'},
+                      metrics=['accuracy'])
+    else:
+        if custom_loss == 'weighted_binary_crossentropy':
+            print 'custom_loss=', custom_loss
+            model.compile(optimizer=optimizers.Adam(lr=1e-4),
+                          loss=weighted_binary_crossentropy,
+                          metrics=['accuracy'])
+
+            # prepare data augmentation configuration
     # train_datagen = ImageDataGenerator(
     #         rescale=1./255,
     #         shear_range=0.2,
