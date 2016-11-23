@@ -1,15 +1,16 @@
 import numpy as np
+np.random.seed(0)
 import os
 
 from learning.ingredients import classifier_from_little_data_script_2 as classifier2
 from learning.ingredients import classifier_from_little_data_script_3 as classifier3
 import learning.ingredients.constants as C
 import utils.data as data
-# from utils.data_analysis import absence_of_ingredients
+from utils.data_analysis import dist_samples_per_ingredient
 
-from keras import backend as K
+# from keras import backend as K
 from keras.models import load_model
-import keras.backend.tensorflow_backend as TB
+# import keras.backend.tensorflow_backend as TB
 # import tensorflow as tf
 
 
@@ -54,68 +55,81 @@ def predict(sample_data, model_file, dir_images, list_of_all_ingredients):
 
 
 def predict_ingredients():
-
+    """Predict ingredients for some sample (model already trained)"""
     sample_data, dir_sample = data.sample('pre-processed-full-recipes-dataset.json', './data/full-recipes-dataset/')
     list_of_all_ingredients = data.load_all_ingredients(file='./data/ingredients.txt')
 
     predict(sample_data, C.final_vgg16_model, dir_sample, list_of_all_ingredients)
 
-# def evaluate TODO com a base de teste
+# def evaluate TODO com a base de teste, nao esquecer de fazer mesma normalizacao imagens aqui e no predict
 
 
 def main():
-    K.set_image_dim_ordering('th')
+    # K.set_image_dim_ordering('th')
     override = False
 
-
-    nb_epoch = 2  # 100
-    validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
+    # validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
+    nb_epoch = 1  # 100
     dropout = 0.5
-    neurons_last_layer = 4096  # 256, 4096
+    neurons_last_layer = 256  # 256, 4096
     my_batch_size = 32
-    custom_loss = 'weighted_binary_crossentropy'  # or None for binary_crossentropy
+    custom_loss = None #'weighted_binary_crossentropy'  # or None for binary_crossentropy
 
-
-    # Predict ingredients for some sample (model already trained)
-    # predict_ingredients()
+    file_dist_ingredients='inverse_distribution_ingredients.npy'
 
 
     # Generate data for training and test
-    # data.split_data('pre-processed-recipes-ctc.json', './data/recipes-ctc/', train=0.9)
-    # train_path, test_path, data_train, data_test = data.split_data('pre-processed-full-recipes-dataset-v2.json', './data/full-recipes-dataset/', train=0.9)
-    train_path, test_path, data_train, data_test = data.split_data('pre-processed-recipes-ctc.json', './data/recipes-ctc/', train=0.15)
+    # # data.split_data('pre-processed-full-recipes-dataset-v2.json', './data/full-recipes-dataset/', train=0.9)
+    train_path, val_path, test_path, data_train, data_val, data_test  = data.split_data('pre-processed-recipes-ctc.json', './data/recipes-ctc/',
+                                                                                        train=0.15, validation_split=0.10)
 
-    # Load images and ingredients array
-    input_tensor, input_ingredients = data.load(data_train, train_path, img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
-                                                file_ingredients='./data/ingredients.txt')
+    # Load images and ingredients array. First for training and then for validation
+    input_images_train, input_ingredients_train = data.load(data_train, train_path,
+                                                            img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
+                                                            file_ingredients='./data/ingredients.txt')
 
-    C.NB_INPUT, C.NB_INGREDIENTS = input_ingredients.shape
-    print 'nb_input={}, nb_ingredients={}'.format(C.NB_INPUT, C.NB_INGREDIENTS)
-    # mean_zeros = absence_of_ingredients(input_ingredients)
+    input_images_val, input_ingredients_val = data.load(data_val, val_path,
+                                                        img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
+                                                        file_ingredients='./data/ingredients.txt')
 
+
+    # Calculate the distribution of each ingredient in the data set for training. This distribution will be used
+    # as a weight in the loss fuction, frequent ingredients will be assigned small weights.
+    ingredients_weight = None
+    if not os.path.exists(file_dist_ingredients) or override:
+        ingredients_weight = dist_samples_per_ingredient(data=data_train, file_ingredients='./data/ingredients.txt',
+                                                         generate_figure=True, image_file='dist_ingredients_train.png')
+        np.save(open(file_dist_ingredients, 'w'), ingredients_weight)
+    else:
+        ingredients_weight = np.load(open(file_dist_ingredients))
+        print 'Loaded file {}'.format(file_dist_ingredients)
+
+    print ingredients_weight
 
     # Define which gpu we are going to use
     # with TB.tf.device('/gpu:1'):
     if not os.path.exists(C.file_bottleneck_features_train) or override:
         classifier2.save_bottlebeck_features(C.file_bottleneck_features_train, C.file_bottleneck_features_validation,
                                              img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
-                                             input_data_train=input_tensor,
+                                             input_data_train=input_images_train, input_data_validation=input_images_val,
                                              batch_size=my_batch_size)
 
     if not os.path.exists(C.top_model_weights_path) or override:
         classifier2.train_top_model(C.file_bottleneck_features_train, C.file_bottleneck_features_validation,
                                     C.top_model_weights_path,
-                                    nb_epoch=nb_epoch, batch_size=my_batch_size, validation_split=validation_split,
-                                    ingredients=input_ingredients, dropout=dropout, neurons_last_layer=neurons_last_layer,
-                                    custom_loss=custom_loss)
-#
-#     classifier3.fine_tuning(C.top_model_weights_path, final_vgg16_model=C.final_vgg16_model,
-#                             img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
-#                             batch_size=my_batch_size, nb_epoch=nb_epoch,
-#                             ingredients=input_ingredients,
-#                             train_data=input_tensor, validation_split=validation_split,
-#                             dropout=dropout, neurons_last_layer=neurons_last_layer,
-#                             custom_loss=custom_loss)
+                                    nb_epoch=nb_epoch, batch_size=my_batch_size, dropout=dropout,
+                                    neurons_last_layer=neurons_last_layer,
+                                    train_ingredients=input_ingredients_train, val_ingredients=input_ingredients_val,
+                                    custom_loss=custom_loss,
+                                    class_weight=ingredients_weight)
+
+    classifier3.fine_tuning(C.top_model_weights_path, final_vgg16_model=C.final_vgg16_model,
+                            img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
+                            batch_size=my_batch_size, nb_epoch=nb_epoch,
+                            train_ingredients=input_ingredients_train, val_ingredients=input_ingredients_val,
+                            train_data=input_images_train, validation_data=input_images_val, # validation_split=validation_split,
+                            dropout=dropout, neurons_last_layer=neurons_last_layer,
+                            custom_loss=custom_loss)
 
 
 if __name__ == '__main__':

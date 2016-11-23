@@ -13,25 +13,22 @@ from learning.my_loss_function import weighted_binary_crossentropy
 import os
 import h5py
 
-# path to the model weights files.
+# path to the model weights files. https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3
 weights_path = 'vgg16_weights.h5'
-# top_model_weights_path = 'bottleneck_fc_model.h5'
-# # dimensions of our images.
-# img_width, img_height = 150, 150
-#
-# train_data_dir = 'data/train'
-# validation_data_dir = 'data/validation'
-# nb_train_samples = 700
-# nb_validation_samples = 300
-# nb_epoch = 50
+
+
+def acc2(y_true, y_pred):
+    return K.mean(K.equal(y_true, K.round(y_pred)))
 
 
 def fine_tuning(top_model_weights_path, final_vgg16_model,
                 img_width, img_height,
-                train_data, ingredients,
-                nb_epoch, batch_size, validation_split,
+                train_data, train_ingredients,
+                validation_data, val_ingredients,
+                nb_epoch, batch_size, #validation_split,
                 dropout=0.5, neurons_last_layer=256,
-                custom_loss=None):
+                custom_loss=None,
+                class_weight=None):
 
     # Determine proper input shape
     if K.image_dim_ordering() == 'th':
@@ -41,7 +38,6 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
 
     # build the VGG16 network
     model = Sequential()
-    # model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width, img_height)))
     model.add(ZeroPadding2D((1, 1), input_shape=input_shape))
 
 
@@ -101,9 +97,13 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     f.close()
     print('Model loaded.')
 
-    nb_images, nb_ingredients = ingredients.shape
-    print 'number of ingredients={}'.format(nb_ingredients)
-    print 'input size ={}'.format(nb_images)
+    nb_images, nb_ingredients = train_ingredients.shape
+    nb_images_val, nb_ingredients_val = val_ingredients.shape
+    print 'Train: number of ingredients={}, input_size={}, input_shape={}'.format(nb_ingredients, nb_images,
+                                                                                  train_data.shape[1:])
+    print 'Validation: number of ingredients={}, input_size={}, input_shape={}'.format(nb_ingredients_val,
+                                                                                       nb_images_val,
+                                                                                       validation_data.shape[1:])
     print 'model.output_shape=', model.output_shape[1:]
 
     # build a classifier model to put on top of the convolutional model
@@ -138,13 +138,15 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     if custom_loss is None:
         model.compile(optimizer=optimizers.Adam(lr=1e-4),
                       loss='binary_crossentropy',  # loss={'ingredients': 'binary_crossentropy'},
-                      metrics=['accuracy'])
+                      metrics=['accuracy', acc2])
+    elif custom_loss == 'weighted_binary_crossentropy':
+        print 'custom_loss=', custom_loss
+        model.compile(optimizer=optimizers.Adam(lr=1e-4),
+                      loss=weighted_binary_crossentropy,
+                      metrics=['accuracy', acc2])
     else:
-        if custom_loss == 'weighted_binary_crossentropy':
-            print 'custom_loss=', custom_loss
-            model.compile(optimizer=optimizers.Adam(lr=1e-4),
-                          loss=weighted_binary_crossentropy,
-                          metrics=['accuracy'])
+        print 'Something is wrong. Returning...'
+        return []
 
             # prepare data augmentation configuration
     # train_datagen = ImageDataGenerator(
@@ -175,10 +177,11 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     #         validation_data=validation_generator,
     #         nb_val_samples=nb_validation_samples)
 
-    history = model.fit(train_data,
-                        y=ingredients, # y={'ingredients': ingredients}
+    history = model.fit(train_data, y=train_ingredients, # y={'ingredients': ingredients}
                         nb_epoch=nb_epoch, batch_size=batch_size,
-                        validation_split=validation_split)
+                        validation_data=(validation_data, val_ingredients),
+                        class_weight=class_weight,  #validation_split=validation_split,
+                        verbose=2)
 
     model.save(final_vgg16_model)
 

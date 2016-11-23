@@ -18,8 +18,3 @@ final_vgg16_model = 'vgg16_model_ingredients_v2.h5'
 
 
 MIN_VALUE = 0.5
-
-
-# TODO toda vez que usar funcao de custo atualizar esses valores, nao consegui pegar o shape com Tensor.get_shape
-NB_INGREDIENTS = 100
-NB_INPUT = 0

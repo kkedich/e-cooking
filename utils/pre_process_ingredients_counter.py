@@ -46,8 +46,7 @@ def read_cached_ingredients_words(file='../data/full-recipes-dataset/pre-process
     return ingr_word_list
 
 
-# TODO frequency_threshold estava em 750 antes
-def cache_counts(counts, file_ingredients='../data/ingredients-teste.txt', frequency_threshold=30):
+def cache_counts(counts, file_ingredients='../data/ingredients-teste.txt', frequency_threshold=30): #frequency_threshold=750
     """ Saves the values to a file for human analysis """
 
     with open(file_ingredients, 'w') as f:

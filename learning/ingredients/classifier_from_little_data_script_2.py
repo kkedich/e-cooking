@@ -1,23 +1,37 @@
+import numpy as np
+np.random.seed(0)
+
 import os
 import h5py
-import numpy as np
+
 # from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend as K
-
-import tensorflow as tf
+# from keras.objectives import binary_crossentropy
+from keras.optimizers import SGD, Adam, RMSprop
+# from keras import optimizers
 
 from learning.my_loss_function import weighted_binary_crossentropy
 
-# Path to the model weights file.
+# Path to the model weights file. https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3
 weights_path = 'vgg16_weights.h5'
+
+# def weighted_binary_crossentropy(y_true, y_pred):
+#     return K.mean(K.binary_crossentropy(y_pred, y_true), axis=-1)
+
+def acc3(y_true, y_pred):
+    return K.mean(K.equal(K.argmax(y_true, axis=-1), K.argmax(y_pred, axis=-1)))
+
+
+def acc2(y_true, y_pred):
+    return K.mean(K.equal(y_true, K.round(y_pred)))
+
 
 
 def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_features_validation,
-                             input_data_train,
-                             # input_data_val,
+                             input_data_train, input_data_validation,
                              batch_size,
                              img_width, img_height):
     # TODO first without image augmentation
@@ -31,7 +45,6 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
 
     # Build the VGG16 network
     model = Sequential()
-    # model.add(ZeroPadding2D((1, 1), input_shape=(3, img_width , img_height)))
     model.add(ZeroPadding2D((1, 1), input_shape=input_shape))
 
     model.add(Convolution2D(64, 3, 3, activation='relu', name='conv1_1'))
@@ -92,10 +105,10 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
     #         class_mode=None,
     #         shuffle=False)
     # bottleneck_features_train = model.predict_generator(generator, constants.NB_TRAIN_SAMPLES)
-    print 'Predict: generating bottleneck features.'
+    print 'Predict (train): generating bottleneck features.'
     bottleneck_features_train = model.predict(input_data_train, batch_size, verbose=1)
     np.save(open(file_bottleneck_features_train, 'w'), bottleneck_features_train)
-    print 'Bottleneck features saved.'
+    print 'Bottleneck features (train) saved.'
 
     # generator = datagen.flow_from_directory(
     #         constants.VALIDATION_DATA_DIR,
@@ -104,26 +117,37 @@ def save_bottlebeck_features(file_bottleneck_features_train, file_bottleneck_fea
     #         class_mode=None,
     #         shuffle=False)
     # bottleneck_features_validation = model.predict_generator(generator, constants.NB_VALIDATION_SAMPLES)
+    print 'Predict (validation): generating bottleneck features.'
+    bottleneck_features_validation = model.predict(input_data_validation, batch_size, verbose=1)
+    np.save(open(file_bottleneck_features_validation, 'w'), bottleneck_features_validation)
+    print 'Bottleneck features (validation) saved.'
 
-    # bottleneck_features_validation = model.predict(input_data_val, batch_size)
-    # np.save(open(file_bottleneck_features_validation, 'w'), bottleneck_features_validation)
 
 
-def train_top_model(file_bottleneck_features_train, file_bottleneck_features_validation, top_model_weights_path,
-                    nb_epoch, batch_size, validation_split,
-                    ingredients, dropout=0.5, neurons_last_layer=256,
-                    custom_loss=None):
+def train_top_model(file_bottleneck_features_train, file_bottleneck_features_validation,
+                    top_model_weights_path,
+                    nb_epoch, batch_size, # validation_split,
+                    train_ingredients, val_ingredients,
+                    dropout=0.5, neurons_last_layer=256,
+                    custom_loss=None,
+                    class_weight=None):
 
     train_data = np.load(open(file_bottleneck_features_train))
     # train_labels = np.array([0] * (constants.NB_TRAIN_SAMPLES / 2) + [1] * (constants.NB_TRAIN_SAMPLES / 2))
 
-    # validation_data = np.load(open(file_bottleneck_features_validation))
+    validation_data = np.load(open(file_bottleneck_features_validation))
     # validation_labels = np.array([0] * (constants.NB_VALIDATION_SAMPLES / 2) + [1] * (constants.NB_VALIDATION_SAMPLES / 2))
 
-    nb_images, nb_ingredients = ingredients.shape
-    print 'number of ingredients={}'.format(nb_ingredients)
-    print 'input size ={}'.format(nb_images)
-    print 'input_shape=', train_data.shape[1:]
+    nb_images, nb_ingredients = train_ingredients.shape
+    nb_images_val, nb_ingredients_val = val_ingredients.shape
+    print 'Train: number of ingredients={}, input_size={}, input_shape={}'.format(nb_ingredients, nb_images,
+                                                                                  train_data.shape[1:])
+    print 'Validation: number of ingredients={}, input_size={}, input_shape={}'.format(nb_ingredients_val, nb_images_val,
+                                                                                       validation_data.shape[1:])
+
+    assert (train_data.shape[1:] == validation_data.shape[1:]), 'Incorrect shape: train and validation have different shapes.'
+    assert nb_ingredients == nb_ingredients_val, 'Incorrect number of ingredients in train {} and validation {}.'.format(nb_ingredients, nb_ingredients_val)
+
 
     model = Sequential()
     model.add(Flatten(input_shape=train_data.shape[1:]))
@@ -131,34 +155,27 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
     model.add(Dropout(dropout))
     model.add(Dense(nb_ingredients, activation='sigmoid')) #, name='ingredients'
 
-    # ingredients_new = tf.Variable(ingredients)
-    # ingredients_new = tf.convert_to_tensor(ingredients, dtype=tf.float32)
-    # train_data_new = tf.convert_to_tensor(train_data, dtype=train_data.dtype)
-    # # ingredients_ha = tf.placeholder(tf.float32, shape=(1024, 1024))
-    # # print ingredients_new
-    # um, dois, tres, quatro = train_data.shape
-    # ingredients_new.set_shape([nb_images, nb_ingredients])
-    # train_data_new.set_shape([um, dois, tres, quatro])
-    # print ingredients_new
-    # print train_data_new
-
     # Define which loss function will be used
     if custom_loss is None:
         model.compile(optimizer='adam',
-                      loss='binary_crossentropy', metrics=['accuracy']) #loss={'ingredients': 'binary_crossentropy'}
+                      loss='binary_crossentropy',
+                      metrics=['accuracy', acc2])
+    elif custom_loss == 'weighted_binary_crossentropy':
+        model.compile(optimizer='adam', #optimizer=optimizers.Adam(lr=1e-4), sgd = SGD(lr=0.001, decay=1e-6, momentum=0.5, nesterov=True)
+                      loss=weighted_binary_crossentropy,
+                      metrics=['accuracy', acc2, acc3])
     else:
-        if custom_loss == 'weighted_binary_crossentropy':
-            model.compile(optimizer='adam',
-                          loss=weighted_binary_crossentropy,
-                          metrics=['accuracy'])
+        print 'Something is wrong. Returning...'
+        return []
 
     # model.fit(train_data, train_labels,
     #           nb_epoch=nb_epoch, batch_size=batch_size,
     #           validation_data=(validation_data, validation_labels))
 
-    model.fit(train_data,
-              y=ingredients,
+    model.fit(train_data, y=train_ingredients,
               nb_epoch=nb_epoch, batch_size=batch_size,
-              validation_split=validation_split)
+              validation_data=(validation_data, val_ingredients),
+              class_weight=class_weight)
 
+    print 'Saving model weights...'
     model.save_weights(top_model_weights_path)

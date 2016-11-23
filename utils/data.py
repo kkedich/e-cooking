@@ -1,6 +1,7 @@
+import numpy as np
+np.random.seed(0)
 
 import math
-import numpy as np
 import random
 from PIL import ImageFile
 
@@ -63,10 +64,13 @@ def sample(json_file, data_dir, number_samples=5, images_dir='images'):
 
 
 def split_data(json_file, data_dir, images_dir='images',
-               train=0.9, revert=False):
-    """ Split the dataset into train and test
-       train: float value from 0 to 1 (test will be 1.0 - train = test) specifying the amount of data for training
+               train=0.9, validation_split=0.1, revert=False):
+    """ Split the dataset into train, validation and test
+       train: float value from 0 to 1 (test will be 1.0 - train - validation = test) specifying the amount of data for training
        and test
+       validation_split: float value from 0 to 1 specifying the amount of data from training for validation.
+                         Example: train=0.9, validation_split=0.1
+                                  test will be 0.1 of the total data and validation will be 0.1 of the train data.
        revert: if True merge the folders 'train' and 'test' of images_path.
     """
     random.seed(100)  # Random number
@@ -76,6 +80,7 @@ def split_data(json_file, data_dir, images_dir='images',
     images_path = data_dir + images_dir + '/'
     train_path = data_dir + 'train/'
     test_path = data_dir + 'test/'
+    val_path = data_dir + 'val/'
 
     if revert:
         print 'TODO Reverting...'
@@ -86,39 +91,56 @@ def split_data(json_file, data_dir, images_dir='images',
             # Loading test and train data
             data_train = myutils.load_json(data_dir + 'train.json')
             data_test = myutils.load_json(data_dir + 'test.json')
+            data_val = myutils.load_json(data_dir + 'validation.json')
 
-            return train_path, test_path, data_train, data_test
+            return train_path, val_path, test_path, data_train, data_val, data_test
 
         data_train = {}
         data_test = {}
+        data_val = {}
 
         size_dataset = len(data)
         samples_train = int(math.ceil(train * size_dataset))
-        samples_test = size_dataset - samples_train
+        samples_val = int(math.ceil(validation_split * samples_train))
+        samples_train = samples_train - samples_val
+        samples_test = size_dataset - samples_train - samples_val
+
+        print 'Total dataset={}, train={}, val={}, test={}'.format(size_dataset, samples_train, samples_val, samples_test)
 
         # Shuffle data to get random order of recipes
         random.shuffle(ids)
 
-        # Get first samples for training and the rest for test
+        # Get first samples for training, then validation, and the rest for test
         for index in range(0, samples_train):
             id_recipe = ids[index]
 
             data_train[id_recipe] = data[id_recipe]
             data.pop(id_recipe)  # Removes the recipe
 
+        # validation
+        for index in range(samples_train, (samples_train + samples_val)):
+            id_recipe = ids[index]
+
+            data_val[id_recipe] = data[id_recipe]
+            data.pop(id_recipe)  # Removes the recipe
+
         data_test = data
 
-        print 'Split data: {} for training (request={}) and {} for test (request={})'.format(len(data_train),
-                samples_train, len(data_test), samples_test)
+        print 'Split data: {} for training (request={}), {} for validation (request={}),' \
+              ' and {} for test (request={})'.format(len(data_train), samples_train,
+                                                     len(data_val), samples_val,
+                                                     len(data_test), samples_test)
 
         myutils.save_json(data_dir + 'train.json', data_train)
         myutils.save_json(data_dir + 'test.json', data_test)
+        myutils.save_json(data_dir + 'validation.json', data_val)
 
-        print 'Copying image files...'
+        # print 'Copying image files...'
         copy_images(images_path, train_path, data_train)
         copy_images(images_path, test_path, data_test)
+        copy_images(images_path, val_path, data_val)
 
-        return train_path, test_path, data_train, data_test
+        return train_path, val_path, test_path, data_train, data_val, data_test
 
 
 def list_ingredients(array, list_of_all_ingredients):
@@ -186,15 +208,23 @@ def load_all_ingredients(file='../data/ingredients.txt'):
 # Util function to open, resize and format pictures into appropriate tensors
 # (from an example in the keras documentation)
 def preprocess_image(image_path, img_height=224, img_width=224):
-    #print 'image: ', image_path
     img = load_img(image_path, target_size=(img_height, img_width))  # target_size=(img_nrows, img_ncols)
     img = img_to_array(img)
     # img = np.expand_dims(img, axis=0)  # parameter for the function is an array
     # img = vgg16.preprocess_input(img)  # parameter for the function is an array
+    print 'img.shape=',img.shape
+
     return img
 
 
 def preprocess_image_array(array_img):
+    """Pre-processing for the VGG16 pre-trained model.
+       First the data is zero-centered from the mean values of each color channel obtained from ImageNet.
+       Then, the image is converted to BGR, since the pre-trained model is generated with BGR images.
+
+       Use this function for training, validation, and test.
+       Note: from keras imagenet_utils
+    """
     # img = np.expand_dims(array_img, axis=0)  # parameter for the function is an array
     img = vgg16.preprocess_input(array_img)  # parameter for the function is an array
 
@@ -215,28 +245,27 @@ def load_images(dir_images, img_height, img_width):
         # input_shape = (img_width, img_height, 3)
         input_images = np.zeros((len(images), img_width, img_height, 3), dtype=np.float32)
 
-    list_img = []
     index = 0
     for image in images:
-        # current_image = K.variable(preprocess_image(image, img_height, img_width))
-        # list_img.append(current_image)
-        input_images[index, :, :, :] = preprocess_image(image, img_height, img_width)
+        input_images[index,:,:,:] = preprocess_image(image, img_height, img_width)
         index += 1
 
-    # combine the 3 images into a single Keras tensor
-    # input_tensor = K.concatenate(list_img, axis=0)
     input_images = preprocess_image_array(input_images)
+    print 'Shape after pre-process(vgg16): {}'.format(input_images.shape)
 
     return input_images, images
 
 
-def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredients=100):
+def load(data, dir_images, img_height, img_width, file_ingredients):
     """ Load images from dir (directory) and ingredients of all recipes in data.
         Return a tensor combining all tensor for each image, and a numpy list of ingredients"""
-    print 'Loading data...'
+    print 'Loading ingredients dictionary...'
     list_of_all_ingredients = load_all_ingredients(file_ingredients)
-    input_ingredients = np.zeros((len(data), len(list_of_all_ingredients)), dtype=np.uint8)
-    # input_ingredients = np.zeros((len(data), nb_ingredients), dtype=np.uint8)
+
+    assert len(list_of_all_ingredients) == 0, 'Something is wrong, no data for the ingredients list: {}.'.format(file_ingredients)
+
+    input_ingredients = np.zeros((len(data), len(list_of_all_ingredients)), dtype=np.float32)
+    # input_ingredients = np.zeros((len(data), 100), dtype=np.uint8) # for random values
 
     input_images = None
     # Determine proper input shape
@@ -245,6 +274,7 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
     else:
         input_images = np.zeros((len(data), img_width, img_height, 3), dtype=np.float32) #(img_width, img_height, 3)
 
+    print 'Loading data ({} images)...'.format(len(data))
     index = 0
     for id_recipe in data:
         image = data[id_recipe]['file_image']
@@ -252,9 +282,7 @@ def load(data, dir_images, img_height, img_width, file_ingredients, nb_ingredien
 
         # Get ingredients_input
         ingredients = data[id_recipe]['ingredients']
-        # if pre-processing of ingredients is ok, use this
         input_ingredients[index, :] = ingredients_vector(ingredients, list_of_all_ingredients)
-        # input_ingredients[index, :] = ingredients_vector(ingredients, list_of_all_ingredients, random_values=True)
 
         index += 1
 

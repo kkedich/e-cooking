@@ -7,67 +7,90 @@ from data import load_all_ingredients, ingredients_vector
 from myutils import load_json
 
 
-def fig_samples_per_ingredient(json_file, file_ingredients, values=None, horizontal=True,
-                               image_file='images-per-ingredient.png'):
-    """Returns number of samples per ingredient as an histogram"""
+def dist_samples_per_ingredient(data, file_ingredients, json_file=None, values=None,
+                                generate_figure=True, horizontal=True, percentage=True,
+                                image_file='images-per-ingredient.png'):
+    """Returns the inverse class frequencies (distribution) of the ingredients in the data set.
+
+       Let number_ingredients be the number of entries in file_ingredients.
+       The distribution obeys the ordering in the file <file_ingredients>.
+       return dictionary with number_of_samples (or percentage) per_ingredient (number_ingredients, 1)
+    """
+    print 'Distribution of samples per ingredient...'
 
     list_of_all_ingredients = load_all_ingredients(file_ingredients)
     # x = np.arange(1, (len(list_of_all_ingredients))*2, 2)
     x_values = np.arange(1, len(list_of_all_ingredients) + 1)
 
     # Set the type of my list
-    my_dtype = [('samples', np.uint32), ('ingredient', 'S17')]
+    my_dtype = [('samples', np.float32), ('ingredient', 'S17')]
     result = np.zeros(len(list_of_all_ingredients), dtype=my_dtype)
 
     result['ingredient'] = list_of_all_ingredients   # Add list of ingredients
 
     if values is None:
-        print 'Loading data...'
-        data = load_json(json_file)
+        if len(data) == 0:
+            print 'Loading data...'
+            data = load_json(json_file)
 
-        samples_per_ingredient = np.zeros(len(list_of_all_ingredients), dtype=np.uint32)
+        samples_per_ingredient = np.zeros(len(list_of_all_ingredients), dtype=np.float32)
 
         for id_recipe in data:
             ingredients = data[id_recipe]['ingredients']  # Get ingredients_input
             current = samples_per_ingredient
             new_sample = ingredients_vector(ingredients, list_of_all_ingredients)
             samples_per_ingredient = current + new_sample
-
-        print 'Samples per ingredient:\n', samples_per_ingredient
+        # print 'Samples per ingredient:\n', samples_per_ingredient
     else:
         samples_per_ingredient = values
 
+    if percentage:
+        samples_per_ingredient = samples_per_ingredient / len(data)
+
     result['samples'] = samples_per_ingredient  # Add number of samples per ingredient
 
-    # Sort the list by the number of images
-    result_sorted = np.sort(result, order='samples')
-    # print result_sorted['samples']
+    print 'Shape samples_per_ing={}, result.shape={}'.format(samples_per_ingredient.shape, result.shape)
+    print 'Samples per ingredient:\n', result  #samples_per_ingredient
 
-    if horizontal:
-        # horizontal bar
-        plt.barh(x_values - 0.4, result_sorted['samples'], align='center', height=0.7)
-        plt.title('Images per ingredient')
-        plt.ylabel('ingredient')
-        plt.xlabel('number of images')
-        plt.yticks(x_values - 0.4, result_sorted['ingredient'])
-        plt.grid(True)
+    if generate_figure:
+        # Sort the list by the number of images
+        result_sorted = np.sort(result, order='samples')
+        # print result_sorted['samples']
 
-        fig = matplotlib.pyplot.gcf()
-        fig.set_size_inches(13.0, 16.5)
-        plt.savefig(image_file)
-    else:
-        # vertical bar
-        plt.bar(x_values-0.4, result_sorted['samples'], align='center', width=0.5)
-        plt.title('Images per ingredient')
-        plt.ylabel('number of images')
-        plt.xlabel('ingredient')
-        plt.xticks(x_values-0.4, result_sorted['ingredient'], rotation=90)
+        if horizontal:
+            # horizontal bar
+            plt.barh(x_values - 0.4, result_sorted['samples'], align='center', height=0.7)
+            plt.title('Images per ingredient')
+            plt.ylabel('ingredient')
+            plt.xlabel('number of images')
+            plt.yticks(x_values - 0.4, result_sorted['ingredient'])
+            plt.grid(True)
 
-        fig = matplotlib.pyplot.gcf()
-        fig.set_size_inches(18.5, 12.0)
-        plt.savefig(image_file)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(13.0, 16.5)
+            plt.savefig(image_file)
+        else:
+            # vertical bar
+            plt.bar(x_values-0.4, result_sorted['samples'], align='center', width=0.5)
+            plt.title('Images per ingredient')
+            plt.ylabel('number of images')
+            plt.xlabel('ingredient')
+            plt.xticks(x_values-0.4, result_sorted['ingredient'], rotation=90)
 
-    return samples_per_ingredient
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(18.5, 12.0)
+            plt.savefig(image_file)
+
+
+    # Define the dictionary used for the class-weight of keras. Mapping class indices (integers) to a weight (float)
+    # shape (classes, weights)
+    my_dtype_keras = [('indices', np.int32), ('weight', np.float32)]
+    result_for_keras = np.zeros(len(list_of_all_ingredients), dtype=my_dtype_keras)
+    result_for_keras['indices'] = np.arange(1, len(list_of_all_ingredients) + 1)
+    # Inverse class frequencies
+    result_for_keras['weight'] = 1.0 - samples_per_ingredient  # Ordering of file_ingredients
+
+    return result_for_keras
 
 
 def fig_ingredients_per_recipe(json_file, file_ingredients, values=None, image_file='ingredients_per_recipe.png'):
@@ -148,7 +171,7 @@ def main():
                                  1456, 1364, 2691, 3539, 6537, 2115, 2649, 3430, 1084, 7713, 3411, 1188,
                                  1758, 1008, 1685, 2150]
 
-      # fig_samples_per_ingredient(file_recipes, file_ingredients, values=samples)
+      # fig_samples_per_ingredient(data=[], json_file=file_recipes, file_ingredients=file_ingredients, values=values)
 
 
       # Number of recipes per number of ingredients:
@@ -159,7 +182,7 @@ def main():
        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
        0,   0,   0,   0,   0,   0,   0,   0,   0,   0]
 
-      fig_ingredients_per_recipe(file_recipes, file_ingredients, values=values)
+      fig_ingredients_per_recipe(json_file=file_recipes, file_ingredients=file_ingredients, values=values)
 
 
 if __name__ == '__main__':
