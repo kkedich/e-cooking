@@ -61,17 +61,33 @@ def predict_ingredients():
 
     predict(sample_data, C.final_vgg16_model, dir_sample, list_of_all_ingredients)
 
-# def evaluate TODO com a base de teste, nao esquecer de fazer mesma normalizacao imagens aqui e no predict
+
+def evaluate(data_test, path_images, model_file):
+    """Evaluate ou final model with the test data.
+       (only execute in the final model)"""
+    print 'Evaluating test data...'
+    input_images_test, input_ingredients_test = data.load(data_test, path_images,
+                                                          img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
+                                                          file_ingredients='./data/ingredients.txt')
+    # Returns a compiled model identical to model.h5
+    model = load_model(model_file)
+    score = model.evaluate(x=input_images_test, y=input_ingredients_test,
+                           batch_size=32, verbose=1, sample_weight=None)
+
+    print 'loss={}, accuracy={}'.format(score[0], score[1]*100)
+    print score
+
 
 
 def main():
     # K.set_image_dim_ordering('th')
     override = False
+    evaluate_model = False
 
     # validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
-    nb_epoch = 1  # 100
+    nb_epoch = 100  # 100
     dropout = 0.5
-    neurons_last_layer = 256  # 256, 4096
+    neurons_last_layer = 4096  # 256, 4096
     my_batch_size = 32
     custom_loss = None #'weighted_binary_crossentropy'  # or None for binary_crossentropy
 
@@ -81,7 +97,15 @@ def main():
     # Generate data for training and test
     # # data.split_data('pre-processed-full-recipes-dataset-v2.json', './data/full-recipes-dataset/', train=0.9)
     train_path, val_path, test_path, data_train, data_val, data_test  = data.split_data('pre-processed-recipes-ctc.json', './data/recipes-ctc/',
-                                                                                        train=0.15, validation_split=0.10)
+                                                                                        train=0.2, validation_split=0.1)
+    # train_path, val_path, test_path, data_train, data_val, data_test = data.split_data('pre-processed-full-recipes-dataset-v2.json',
+    #                                                                                    './data/full-recipes-dataset/',
+    #                                                                                     train=0.9, validation_split=0.1)
+    # Evaluate test data with the final model
+    if evaluate_model:
+        evaluate(data_val, val_path, C.final_vgg16_model)
+        return
+
 
     # Load images and ingredients array. First for training and then for validation
     input_images_train, input_ingredients_train = data.load(data_train, train_path,

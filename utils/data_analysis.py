@@ -90,7 +90,7 @@ def dist_samples_per_ingredient(data, file_ingredients, json_file=None, values=N
     # Inverse class frequencies
     result_for_keras['weight'] = 1.0 - samples_per_ingredient  # Ordering of file_ingredients
 
-    return result_for_keras
+    return  result_for_keras['weight']
 
 
 def fig_ingredients_per_recipe(json_file, file_ingredients, values=None, image_file='ingredients_per_recipe.png'):

@@ -15,7 +15,7 @@ from tensorflow.python.ops import array_ops
 
 # from tensorflow TB._EPSILON
 _EPSILON = K.epsilon() #10e-8
-print _EPSILON
+# print _EPSILON
 
 def weighted_binary_crossentropy(y_true, y_pred):
     return K.mean(my_weighted_binary_crossentropy(y_pred, y_true), axis=-1)

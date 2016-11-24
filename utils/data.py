@@ -212,8 +212,6 @@ def preprocess_image(image_path, img_height=224, img_width=224):
     img = img_to_array(img)
     # img = np.expand_dims(img, axis=0)  # parameter for the function is an array
     # img = vgg16.preprocess_input(img)  # parameter for the function is an array
-    print 'img.shape=',img.shape
-
     return img
 
 
@@ -262,7 +260,7 @@ def load(data, dir_images, img_height, img_width, file_ingredients):
     print 'Loading ingredients dictionary...'
     list_of_all_ingredients = load_all_ingredients(file_ingredients)
 
-    assert len(list_of_all_ingredients) == 0, 'Something is wrong, no data for the ingredients list: {}.'.format(file_ingredients)
+    assert len(list_of_all_ingredients) > 0, 'Something is wrong, no data for the ingredients list: {}.'.format(len(list_of_all_ingredients))
 
     input_ingredients = np.zeros((len(data), len(list_of_all_ingredients)), dtype=np.float32)
     # input_ingredients = np.zeros((len(data), 100), dtype=np.uint8) # for random values
