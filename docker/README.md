@@ -27,7 +27,7 @@ Once Docker is installed, you can follow the steps:
    
 
 In order to change the backend of Keras to Theano you can change the property 'backend' in the file `~/.keras/keras.json` from 'tensorflow' to 'theano'.
-Configuration of `~/.keras/keras.json` in both containers:
+Configuration of `~/.keras/keras.json` in both docker images:
 >{
 >"image_dim_ordering": "th",
 >"epsilon": 1e-07,
