@@ -136,11 +136,11 @@ def main():
 
     # Generate data for training and test
     # # data.split_data('pre-processed-full-recipes-dataset-v2.json', './data/full-recipes-dataset/', train=0.9)
-    train_path, val_path, test_path, data_train, data_val, data_test  = data.split_data('pre-processed-recipes-ctc.json', './data/recipes-ctc/',
-                                                                                        train=0.2, validation_split=0.1)
-    # train_path, val_path, test_path, data_train, data_val, data_test = data.split_data('pre-processed-full-recipes-dataset-v2.json',
-    #                                                                                    './data/full-recipes-dataset/',
-    #                                                                                     train=0.9, validation_split=0.1)
+    # train_path, val_path, test_path, data_train, data_val, data_test  = data.split_data('pre-processed-recipes-ctc.json', './data/recipes-ctc/',
+    #                                                                                     train=0.2, validation_split=0.1)
+    train_path, val_path, test_path, data_train, data_val, data_test = data.split_data('pre-processed-full-recipes-dataset-v2.json',
+                                                                                       './data/full-recipes-dataset/',
+                                                                                        train=0.9, validation_split=0.1)
 
 
     # Load images and ingredients array. First for training and then for validation
@@ -155,6 +155,7 @@ def main():
 
     # Calculate the distribution of each ingredient in the data set for training. This distribution will be used
     # as a weight in the loss fuction, frequent ingredients will be assigned small weights.
+    # https://github.com/fchollet/keras/pull/188
     ingredients_weight = None
     if not os.path.exists(file_dist_ingredients) or override:
         ingredients_weight = dist_samples_per_ingredient(data=data_train, file_ingredients='./data/ingredients.txt',
@@ -182,7 +183,7 @@ def main():
                                     train_ingredients=input_ingredients_train, val_ingredients=input_ingredients_val,
                                     custom_loss=custom_loss,
                                     class_weight=ingredients_weight)
-
+    
     classifier3.fine_tuning(C.top_model_weights_path, final_vgg16_model=C.final_vgg16_model,
                             img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
                             batch_size=my_batch_size, nb_epoch=nb_epoch,
@@ -195,7 +196,7 @@ def main():
     # Evaluate test data with the final model
     if evaluate_model:
         assert os.path.exists(C.final_vgg16_model), 'File for the model <{}> not found.'.format(C.final_vgg16_model)
-        evaluate(data_val, val_path, C.final_vgg16_model)
+        evaluate(data_test, test_path, C.final_vgg16_model)
 
 
 if __name__ == '__main__':
