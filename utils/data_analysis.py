@@ -86,18 +86,23 @@ def dist_samples_per_ingredient(data, file_ingredients, json_file=None, values=N
     # shape (classes, weights)
     # high_weight = 100
     # +class_weight = {0:1,1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:high_weight}
-    # my_dtype_keras = [('indices', np.int32), ('weight', np.float32)]
-    # result_for_keras = np.zeros(len(list_of_all_ingredients), dtype=my_dtype_keras)
-    # result_for_keras['indices'] = np.arange(1, len(list_of_all_ingredients) + 1)
+    # result_for_keras['weight'] for our custom loss
+    my_dtype_keras = [('indices', np.int32), ('weight', np.float32)]
+    result_for_keras = np.zeros(len(list_of_all_ingredients), dtype=my_dtype_keras)
+    result_for_keras['indices'] = np.arange(1, len(list_of_all_ingredients) + 1)
     # Inverse class frequencies
-    # result_for_keras['weight'] = 1.0 - samples_per_ingredient  # Ordering of file_ingredients
+    result_for_keras['weight'] = 1.0 - samples_per_ingredient  # Ordering of file_ingredients
+
+    # Dict for keras
     index = 0
     inverse_dist_ingredients = {}
     for index in range(0, len(list_of_all_ingredients)):
         inverse_dist_ingredients[index] = 1.0 - samples_per_ingredient[0][index]
 
-    # result_for_keras['weight']
-    return inverse_dist_ingredients
+
+    print result_for_keras['weight'].shape
+    print result_for_keras['weight']
+    return inverse_dist_ingredients, result_for_keras['weight']
 
 
 def fig_ingredients_per_recipe(json_file, file_ingredients, values=None, image_file='ingredients_per_recipe.png'):

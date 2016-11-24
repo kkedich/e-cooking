@@ -13,7 +13,8 @@ from keras import backend as K
 from keras.optimizers import SGD, Adam, RMSprop
 # from keras import optimizers
 
-from learning.my_loss_function import weighted_binary_crossentropy
+# from learning.my_loss_function import weighted_binary_crossentropy
+from learning.my_other_loss_function import weighted_loss
 
 # Path to the model weights file. https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3
 weights_path = 'vgg16_weights.h5'
@@ -160,22 +161,30 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
         model.compile(optimizer='adam',
                       loss='binary_crossentropy',
                       metrics=['accuracy', acc2])
+
+
+        model.fit(train_data, y=train_ingredients,
+                  nb_epoch=nb_epoch, batch_size=batch_size,
+                  validation_data=(validation_data, val_ingredients),
+                  class_weight=class_weight)
+
     elif custom_loss == 'weighted_binary_crossentropy':
-        model.compile(optimizer='adam', #optimizer=optimizers.Adam(lr=1e-4), sgd = SGD(lr=0.001, decay=1e-6, momentum=0.5, nesterov=True)
-                      loss=weighted_binary_crossentropy,
+        # model.compile(optimizer='adam', #optimizer=optimizers.Adam(lr=1e-4), sgd = SGD(lr=0.001, decay=1e-6, momentum=0.5, nesterov=True)
+        #               loss=weighted_binary_crossentropy,
+        #               metrics=['accuracy', acc2, acc3])
+
+        model.compile(optimizer='adam',
+                      loss=weighted_loss(class_weight, nb_ingredients),
                       metrics=['accuracy', acc2, acc3])
+
+
+        model.fit(train_data, y=train_ingredients,
+                  nb_epoch=nb_epoch, batch_size=batch_size,
+                  validation_data=(validation_data, val_ingredients))
     else:
         print 'Something is wrong. Returning...'
         return []
 
-    # model.fit(train_data, train_labels,
-    #           nb_epoch=nb_epoch, batch_size=batch_size,
-    #           validation_data=(validation_data, validation_labels))
-
-    model.fit(train_data, y=train_ingredients,
-              nb_epoch=nb_epoch, batch_size=batch_size,
-              validation_data=(validation_data, val_ingredients),
-              class_weight=class_weight)
 
     print 'Saving model weights...'
     model.save_weights(top_model_weights_path)

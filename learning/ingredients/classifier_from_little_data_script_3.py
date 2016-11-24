@@ -8,7 +8,8 @@ from keras.layers import Dropout, Flatten, Dense
 from keras import backend as K
 
 from learning import result
-from learning.my_loss_function import weighted_binary_crossentropy
+# from learning.my_loss_function import weighted_binary_crossentropy
+from learning.my_other_loss_function import weighted_loss
 
 import os
 import h5py
@@ -26,9 +27,9 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
                 train_data, train_ingredients,
                 validation_data, val_ingredients,
                 nb_epoch, batch_size, #validation_split,
+                class_weight,
                 dropout=0.5, neurons_last_layer=256,
-                custom_loss=None,
-                class_weight=None):
+                custom_loss=None):
 
     # Determine proper input shape
     if K.image_dim_ordering() == 'th':
@@ -135,53 +136,35 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     print '\n'
     model.summary()
 
+    history = None
     if custom_loss is None:
         model.compile(optimizer=optimizers.Adam(lr=1e-4),
                       loss='binary_crossentropy',  # loss={'ingredients': 'binary_crossentropy'},
                       metrics=['accuracy', acc2])
+
+
+        history = model.fit(train_data, y=train_ingredients,  # y={'ingredients': ingredients}
+                            nb_epoch=nb_epoch, batch_size=batch_size,
+                            validation_data=(validation_data, val_ingredients),
+                            class_weight=class_weight,  # validation_split=validation_split,
+                            verbose=2)
+
     elif custom_loss == 'weighted_binary_crossentropy':
         print 'custom_loss=', custom_loss
+
         model.compile(optimizer=optimizers.Adam(lr=1e-4),
-                      loss=weighted_binary_crossentropy,
+                      loss=weighted_loss(class_weight, nb_ingredients),
                       metrics=['accuracy', acc2])
+
+        history = model.fit(train_data, y=train_ingredients,  # y={'ingredients': ingredients}
+                            nb_epoch=nb_epoch, batch_size=batch_size,
+                            validation_data=(validation_data, val_ingredients),
+                            verbose=2)
+
     else:
-        print 'Something is wrong. Returning...'
+        print 'No loss function defined. Returning...'
         return []
 
-            # prepare data augmentation configuration
-    # train_datagen = ImageDataGenerator(
-    #         rescale=1./255,
-    #         shear_range=0.2,
-    #         zoom_range=0.2,
-    #         horizontal_flip=True)
-
-    # test_datagen = ImageDataGenerator(rescale=1./255)
-
-    # train_generator = train_datagen.flow_from_directory(
-    #         train_data_dir,
-    #         target_size=(img_height, img_width),
-    #         batch_size=32,
-    #         class_mode='binary')
-
-    # validation_generator = test_datagen.flow_from_directory(
-    #         validation_data_dir,
-    #         target_size=(img_height, img_width),
-    #         batch_size=32,
-    #         class_mode='binary')
-
-    # fine-tune the model
-    # model.fit_generator(
-    #         train_generator,
-    #         samples_per_epoch=nb_train_samples,
-    #         nb_epoch=nb_epoch,
-    #         validation_data=validation_generator,
-    #         nb_val_samples=nb_validation_samples)
-
-    history = model.fit(train_data, y=train_ingredients, # y={'ingredients': ingredients}
-                        nb_epoch=nb_epoch, batch_size=batch_size,
-                        validation_data=(validation_data, val_ingredients),
-                        class_weight=class_weight,  #validation_split=validation_split,
-                        verbose=2)
 
     model.save(final_vgg16_model)
 

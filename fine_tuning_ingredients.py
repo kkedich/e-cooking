@@ -8,7 +8,6 @@ import learning.ingredients.constants as C
 import utils.data as data
 from utils.data_analysis import dist_samples_per_ingredient
 
-
 from keras.models import load_model
 # from keras import backend as K
 # import keras.backend.tensorflow_backend as TB
@@ -127,11 +126,12 @@ def main():
     # validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
     nb_epoch = 100  # 100
     dropout = 0.5
-    neurons_last_layer = 4096  # 256, 4096
+    neurons_last_layer = 256  # 256, 4096
     my_batch_size = 32
     custom_loss = None #'weighted_binary_crossentropy'  # or None for binary_crossentropy
 
-    file_dist_ingredients='inverse_distribution_ingredients.npy'
+    file_dist_ingredients_dict = 'inverse_distribution_ingredients_dict.npy'
+    file_dist_ingredients_array = 'inverse_distribution_ingredients_array.npy'
 
 
     # Generate data for training and test
@@ -156,16 +156,27 @@ def main():
     # Calculate the distribution of each ingredient in the data set for training. This distribution will be used
     # as a weight in the loss fuction, frequent ingredients will be assigned small weights.
     # https://github.com/fchollet/keras/pull/188
-    ingredients_weight = None
-    if not os.path.exists(file_dist_ingredients) or override:
-        ingredients_weight = dist_samples_per_ingredient(data=data_train, file_ingredients='./data/ingredients.txt',
+    ingredients_weight_dict = None
+    ingredients_weight_array = None
+    if not os.path.exists(file_dist_ingredients_dict) or override:
+        ingredients_weight_dict, ingredients_weight_array = dist_samples_per_ingredient(data=data_train, file_ingredients='./data/ingredients.txt',
                                                          generate_figure=True, image_file='dist_ingredients_train.png')
-        np.save(open(file_dist_ingredients, 'w'), ingredients_weight)
+        np.save(open(file_dist_ingredients_dict, 'w'), ingredients_weight_dict)
+        np.save(open(file_dist_ingredients_array, 'w'), ingredients_weight_array)
     else:
-        ingredients_weight = np.load(open(file_dist_ingredients))
-        print 'Loaded file {}'.format(file_dist_ingredients)
+        ingredients_weight_dict = np.load(open(file_dist_ingredients_dict))
+        ingredients_weight_array = np.load(open(file_dist_ingredients_array))
+        print 'Loaded file {}'.format(file_dist_ingredients_dict)
+        print 'Loaded file {}'.format(file_dist_ingredients_array)
+    print ingredients_weight_dict
+    print ingredients_weight_array
 
-    print ingredients_weight
+    class_weight = None
+    if custom_loss is None:
+        class_weight = ingredients_weight_dict
+    elif custom_loss == 'weighted_binary_crossentropy':
+        class_weight = ingredients_weight_array
+
 
     # Define which gpu we are going to use
     # with TB.tf.device('/gpu:1'):
@@ -182,13 +193,14 @@ def main():
                                     neurons_last_layer=neurons_last_layer,
                                     train_ingredients=input_ingredients_train, val_ingredients=input_ingredients_val,
                                     custom_loss=custom_loss,
-                                    class_weight=ingredients_weight)
-    
+                                    class_weight=class_weight)
+
     classifier3.fine_tuning(C.top_model_weights_path, final_vgg16_model=C.final_vgg16_model,
                             img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
                             batch_size=my_batch_size, nb_epoch=nb_epoch,
                             train_ingredients=input_ingredients_train, val_ingredients=input_ingredients_val,
                             train_data=input_images_train, validation_data=input_images_val, # validation_split=validation_split,
+                            class_weight=class_weight,
                             dropout=dropout, neurons_last_layer=neurons_last_layer,
                             custom_loss=custom_loss)
 
