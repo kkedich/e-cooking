@@ -1,6 +1,7 @@
 import numpy as np
 np.random.seed(0)
 
+import os
 import math
 import random
 from PIL import ImageFile
@@ -145,8 +146,8 @@ def split_data(json_file, data_dir, images_dir='images',
 
 def list_ingredients(array, list_of_all_ingredients):
     """Returns a list of ingredients (names) in array.
-       array: of 0s and 1s indicating the presence or not of a particular ingredient
-       list_of_all_ingredients: list with all names of ingredients."""
+       array: (number_ingredients, ) of 0s and 1s indicating the presence or not of a particular ingredient
+       list_of_all_ingredients: list with all ingredients used in our model."""
     names = []
     for index in range(0, len(array)):
         if array[index] == 1:
@@ -192,6 +193,8 @@ def ingredients_vector(current_ingredients, list_all_ingredients, random_values=
 
 
 def load_all_ingredients(file='../data/ingredients.txt'):
+    # verifies if the file exists
+    assert os.path.exists(file), 'Ingredients file <{}> not found.'.format(file)
 
     with open(file, 'r') as f:
         ingredients_count = [line.rstrip('\n') for line in f]
@@ -229,6 +232,22 @@ def preprocess_image_array(array_img):
     return img
 
 
+def load_image(image_file, img_height, img_width):
+    """Load ONE image and return the corresponding input for the model."""
+    input_images = None
+    # Determine proper input shape
+    if K.image_dim_ordering() == 'th':
+        input_images = np.zeros((1, 3, img_width, img_height), dtype=np.float32)
+    else:
+        input_images = np.zeros((1, img_width, img_height, 3), dtype=np.float32)
+
+    input_images[0,:,:,:] = preprocess_image(image_file, img_height, img_width)
+    input_images = preprocess_image_array(input_images)
+
+    return input_images
+
+
+
 def load_images(dir_images, img_height, img_width):
     """Load only images in dir_images. Returns a Keras tensor combining all images."""
     images = myutils.my_list_pictures(dir_images)
@@ -255,8 +274,7 @@ def load_images(dir_images, img_height, img_width):
 
 
 def load(data, dir_images, img_height, img_width, file_ingredients):
-    """ Load images from dir (directory) and ingredients of all recipes in data.
-        Return a tensor combining all tensor for each image, and a numpy list of ingredients"""
+    """ Load images from dir (directory) and ingredients of all recipes in data."""
     print 'Loading ingredients dictionary...'
     list_of_all_ingredients = load_all_ingredients(file_ingredients)
 

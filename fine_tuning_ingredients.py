@@ -8,10 +8,44 @@ import learning.ingredients.constants as C
 import utils.data as data
 from utils.data_analysis import dist_samples_per_ingredient
 
-# from keras import backend as K
+
 from keras.models import load_model
+# from keras import backend as K
 # import keras.backend.tensorflow_backend as TB
 # import tensorflow as tf
+
+
+def predict_this(image_file, file_ingredients='./data/ingredients.txt'):
+    """Predict the ingredients of an image with the last available model
+       return: list of strings with the ingredients.
+       Ex: predict_this('food.jpg')
+           returns ['salt', 'oil', 'pepper', 'oliv']
+       """
+    print 'Generating ingredients for <{}>'.format(image_file)
+    input_image = data.load_image(image_file, C.IMG_HEIGHT, C.IMG_WIDTH)
+    # Dictionary of ingredients for the model
+    list_of_all_ingredients = data.load_all_ingredients(file=file_ingredients)
+
+    # Returns a compiled model identical to model.h5
+    assert os.path.exists(C.final_vgg16_model), 'File for the model <{}> not found.'.format(C.final_vgg16_model)
+
+    model = load_model(C.final_vgg16_model)
+    prediction = model.predict(input_image)
+
+    rounded_pred = np.zeros(prediction.shape[1], dtype=np.uint8)
+    # print rounded_pred.shape
+    # print prediction.shape
+    print 'Original prediction: ', prediction
+    for index in range(0, prediction.shape[1]):
+        if prediction[0][index] >= C.MIN_VALUE:
+            rounded_pred[index] = 1  # the ingredient is here
+        else:
+            rounded_pred[index] = 0
+
+    ingredients = data.list_ingredients(rounded_pred, list_of_all_ingredients)
+    print 'Ingredients:', ingredients
+
+    return ingredients
 
 
 def predict(sample_data, model_file, dir_images, list_of_all_ingredients):
@@ -22,12 +56,15 @@ def predict(sample_data, model_file, dir_images, list_of_all_ingredients):
     input_data, list_images = data.load_images(dir_images, img_height=C.IMG_HEIGHT, img_width=C.IMG_WIDTH)
 
     # Returns a compiled model identical to model.h5
+    assert os.path.exists(model_file), 'File for the model <{}> not found.'.format(model_file)
+
     model = load_model(model_file)
     predictions = model.predict(input_data, verbose=1)
     print predictions   
     print 'len=', len(predictions)
     
     # Round predictions by threshold
+    # TODO checar isso, predict_this foi alterado porque tinha erro no indice do vetor
     rounded = []
     for prediction in predictions:
         current_array = np.zeros(len(prediction), dtype=np.uint8)
@@ -35,7 +72,7 @@ def predict(sample_data, model_file, dir_images, list_of_all_ingredients):
     
         for index in range(0, len(prediction)):
             if prediction[index] >= C.MIN_VALUE:
-                current_array[index] = 1  # the ingredient is there
+                current_array[index] = 1  # the ingredient is here
             else:
                 current_array[index] = 0
         rounded.append(current_array)
@@ -62,7 +99,7 @@ def predict_ingredients():
     predict(sample_data, C.final_vgg16_model, dir_sample, list_of_all_ingredients)
 
 
-def evaluate(data_test, path_images, model_file):
+def evaluate(data_test, path_images, model_file, output_file_accuracy='test_accuracy.npy'):
     """Evaluate ou final model with the test data.
        (only execute in the final model)"""
     print 'Evaluating test data...'
@@ -70,19 +107,22 @@ def evaluate(data_test, path_images, model_file):
                                                           img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
                                                           file_ingredients='./data/ingredients.txt')
     # Returns a compiled model identical to model.h5
+    assert os.path.exists(model_file), 'File for the model <{}> not found.'.format(model_file)
+
     model = load_model(model_file)
     score = model.evaluate(x=input_images_test, y=input_ingredients_test,
                            batch_size=32, verbose=1, sample_weight=None)
+
+    np.save(open(output_file_accuracy, 'w'), score)
 
     print 'loss={}, accuracy={}'.format(score[0], score[1]*100)
     print score
 
 
-
 def main():
     # K.set_image_dim_ordering('th')
     override = False
-    evaluate_model = False
+    evaluate_model = True
 
     # validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
     nb_epoch = 100  # 100
@@ -101,10 +141,6 @@ def main():
     # train_path, val_path, test_path, data_train, data_val, data_test = data.split_data('pre-processed-full-recipes-dataset-v2.json',
     #                                                                                    './data/full-recipes-dataset/',
     #                                                                                     train=0.9, validation_split=0.1)
-    # Evaluate test data with the final model
-    if evaluate_model:
-        evaluate(data_val, val_path, C.final_vgg16_model)
-        return
 
 
     # Load images and ingredients array. First for training and then for validation
@@ -154,6 +190,12 @@ def main():
                             train_data=input_images_train, validation_data=input_images_val, # validation_split=validation_split,
                             dropout=dropout, neurons_last_layer=neurons_last_layer,
                             custom_loss=custom_loss)
+
+
+    # Evaluate test data with the final model
+    if evaluate_model:
+        assert os.path.exists(C.final_vgg16_model), 'File for the model <{}> not found.'.format(C.final_vgg16_model)
+        evaluate(data_val, val_path, C.final_vgg16_model)
 
 
 if __name__ == '__main__':
