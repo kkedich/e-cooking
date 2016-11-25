@@ -19,6 +19,7 @@ def process(history, directory):
     print 'History keys: '.format(history.history.keys())
 
     # Summarize history for accuracy
+    plt.clf()  # Clean current figure before the following plot
     plt.plot(history.history['acc'])
     plt.plot(history.history['val_acc'])
     plt.title('model accuracy')
@@ -38,6 +39,7 @@ def process(history, directory):
     plt.legend(['train', 'validation'], loc='upper left')
     # plt.savefig(directory + 'history-loss.png')
     plt.savefig('history-loss.png')
+    plt.clf()  # Clean current figure before the following plot
 
     # Save history of training
-    save_json('history.json', history)
+    # save_json('history.json', history)

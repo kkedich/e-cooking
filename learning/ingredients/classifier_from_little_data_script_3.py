@@ -1,3 +1,5 @@
+import numpy as np
+np.random.seed(0)
 
 # from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
@@ -138,7 +140,7 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
 
     history = None
     if custom_loss is None:
-        model.compile(optimizer=optimizers.Adam(lr=1e-4),
+        model.compile(optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
                       loss='binary_crossentropy',  # loss={'ingredients': 'binary_crossentropy'},
                       metrics=['accuracy', acc2])
 
@@ -152,7 +154,8 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     elif custom_loss == 'weighted_binary_crossentropy':
         print 'custom_loss=', custom_loss
 
-        model.compile(optimizer=optimizers.Adam(lr=1e-4),
+        # compile the model with a SGD/momentum optimizer and a very slow learning rate.
+        model.compile(optimizer=optimizers.SGD(lr=1e-4, momentum=0.9), #optimizers.Adam(lr=1e-4),
                       loss=weighted_loss(class_weight, nb_ingredients),
                       metrics=['accuracy', acc2])
 
@@ -169,3 +172,5 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     model.save(final_vgg16_model)
 
     result.process(history, '../e-cooking/')
+    np.save(open('history.npy', 'w'), history)
+

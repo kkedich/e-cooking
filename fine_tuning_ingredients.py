@@ -98,13 +98,13 @@ def predict_ingredients():
     predict(sample_data, C.final_vgg16_model, dir_sample, list_of_all_ingredients)
 
 
-def evaluate(data_test, path_images, model_file, output_file_accuracy='test_accuracy.npy'):
+def evaluate(data_test, path_images, model_file, file_ingredients, output_file_accuracy='test_accuracy.npy'):
     """Evaluate ou final model with the test data.
        (only execute in the final model)"""
     print 'Evaluating test data...'
     input_images_test, input_ingredients_test = data.load(data_test, path_images,
                                                           img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
-                                                          file_ingredients='./data/ingredients.txt')
+                                                          file_ingredients=file_ingredients)
     # Returns a compiled model identical to model.h5
     assert os.path.exists(model_file), 'File for the model <{}> not found.'.format(model_file)
 
@@ -126,12 +126,17 @@ def main():
     # validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
     nb_epoch = 100  # 100
     dropout = 0.5
-    neurons_last_layer = 256  # 256, 4096
+    neurons_last_layer = 512  # 256, 4096
     my_batch_size = 32
-    custom_loss = None #'weighted_binary_crossentropy'  # or None for binary_crossentropy
+    custom_loss = None #'weighted_binary_crossentropy' #'weighted_binary_crossentropy' or None for binary_crossentropy
 
     file_dist_ingredients_dict = 'inverse_distribution_ingredients_dict.npy'
     file_dist_ingredients_array = 'inverse_distribution_ingredients_array.npy'
+    file_ingredients = './data/new-ingredients.txt'
+
+
+    print 'Current parameters: nb_epoch={}, custom_loss={}, neurons_last_layer={}'.format(nb_epoch, custom_loss,
+                                                                                          neurons_last_layer)
 
 
     # Generate data for training and test
@@ -146,11 +151,11 @@ def main():
     # Load images and ingredients array. First for training and then for validation
     input_images_train, input_ingredients_train = data.load(data_train, train_path,
                                                             img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
-                                                            file_ingredients='./data/ingredients.txt')
+                                                            file_ingredients=file_ingredients)
 
     input_images_val, input_ingredients_val = data.load(data_val, val_path,
                                                         img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,
-                                                        file_ingredients='./data/ingredients.txt')
+                                                        file_ingredients=file_ingredients)
 
 
     # Calculate the distribution of each ingredient in the data set for training. This distribution will be used
@@ -159,7 +164,8 @@ def main():
     ingredients_weight_dict = None
     ingredients_weight_array = None
     if not os.path.exists(file_dist_ingredients_dict) or override:
-        ingredients_weight_dict, ingredients_weight_array = dist_samples_per_ingredient(data=data_train, file_ingredients='./data/ingredients.txt',
+        ingredients_weight_dict, ingredients_weight_array = dist_samples_per_ingredient(data=data_train,
+                                                         file_ingredients=file_ingredients,
                                                          generate_figure=True, image_file='dist_ingredients_train.png')
         np.save(open(file_dist_ingredients_dict, 'w'), ingredients_weight_dict)
         np.save(open(file_dist_ingredients_array, 'w'), ingredients_weight_array)
@@ -173,7 +179,7 @@ def main():
 
     class_weight = None
     if custom_loss is None:
-        class_weight = ingredients_weight_dict
+        class_weight = ingredients_weight_dict #ingredients_weight_dict
     elif custom_loss == 'weighted_binary_crossentropy':
         class_weight = ingredients_weight_array
 
@@ -208,7 +214,7 @@ def main():
     # Evaluate test data with the final model
     if evaluate_model:
         assert os.path.exists(C.final_vgg16_model), 'File for the model <{}> not found.'.format(C.final_vgg16_model)
-        evaluate(data_test, test_path, C.final_vgg16_model)
+        evaluate(data_test, test_path, C.final_vgg16_model, file_ingredients=file_ingredients)
 
 
 if __name__ == '__main__':

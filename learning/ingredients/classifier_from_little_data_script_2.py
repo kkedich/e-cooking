@@ -158,7 +158,7 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
 
     # Define which loss function will be used
     if custom_loss is None:
-        model.compile(optimizer='adam',
+        model.compile(optimizer='sgd',
                       loss='binary_crossentropy',
                       metrics=['accuracy', acc2])
 
@@ -173,7 +173,7 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
         #               loss=weighted_binary_crossentropy,
         #               metrics=['accuracy', acc2, acc3])
 
-        model.compile(optimizer='adam',
+        model.compile(optimizer='sgd',
                       loss=weighted_loss(class_weight, nb_ingredients),
                       metrics=['accuracy', acc2, acc3])
 
