@@ -128,6 +128,14 @@ def clean_recipes_terms(ingredient):
     return ingredient
 
 
+def remove_words_from_size(words, size):
+    """Remove words of smaller sizes than parameter <size>"""
+    assert size > 0, 'Size must be: size > 0'
+
+    filtered_words = [word for word in words if len(word) > size]
+    return filtered_words
+
+
 def stem_words(words):
     stemmer = SnowballStemmer("english")
     words[:] = [stemmer.stem(word) for word in words]
@@ -170,20 +178,10 @@ def is_adjective(tag):
     return tag in ['JJ', 'JJR', 'JJS']
 
 
-# def penn_to_wn(tag):
-#     if is_adjective(tag):
-#         return wn.ADJ
-#     elif is_noun(tag):
-#         return wn.NOUN
-#     elif is_adverb(tag):
-#         return wn.ADV
-#     elif is_verb(tag):
-#         return wn.VERB
-#     return None
-
-
 def remove_speech_tags(words):
-    """Remove verbs and adverbs"""
+    """Remove verbs and adverbs
+       Note: some verbs still pass this pre-processing.
+    """
     words_with_tags = pos_tag(words)
     # print words_with_tags
 
@@ -209,3 +207,14 @@ def remove_speech_tags(words):
 #             filtered_words.append(current_word[0])
 #
 #     return filtered_words
+
+# def penn_to_wn(tag):
+#     if is_adjective(tag):
+#         return wn.ADJ
+#     elif is_noun(tag):
+#         return wn.NOUN
+#     elif is_adverb(tag):
+#         return wn.ADV
+#     elif is_verb(tag):
+#         return wn.VERB
+#     return None

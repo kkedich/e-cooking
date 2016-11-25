@@ -1,4 +1,5 @@
 import os
+import operator
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 
@@ -17,7 +18,12 @@ import myutils
 #     return list_ingredients
 
 
-def read_cached_ingredients_words(file='../data/full-recipes-dataset/pre-processed-full-recipes-dataset.json',
+def sort_ingredients():
+
+    return 0
+
+
+def read_cached_ingredients_words(file='../data/full-recipes-dataset/pre-processed-full-recipes-dataset-v2.json',
                                   file_words='../data/words-teste.txt'):
     """ Returns a list with all words from all ingredients from all recipes of the dataset."""
     print 'Reading ingredients of all recipes'
@@ -46,13 +52,23 @@ def read_cached_ingredients_words(file='../data/full-recipes-dataset/pre-process
     return ingr_word_list
 
 
-def cache_counts(counts, file_ingredients='../data/ingredients-teste.txt', frequency_threshold=30): #frequency_threshold=750
-    """ Saves the values to a file for human analysis """
-
-    with open(file_ingredients, 'w') as f:
-        for more_freq in counts.keys():
-            if counts[more_freq] > frequency_threshold:
-                f.write(more_freq + ';' + str(counts[more_freq]) + '\n')
+def cache_counts(counts, sorted=False, file_ingredients='../data/ingredients-teste.txt',
+                 frequency_threshold=30): #frequency_threshold=750
+    """ Saves the values into a file"""
+    if sorted:
+        # another save procedure. counts is not a dictionary
+        with open(file_ingredients, 'w') as f:
+            for index in range(0, len(counts)):
+                name = counts[index][0]
+                frequency = counts[index][1]
+                if frequency > frequency_threshold:
+                    f.write(name + ';' + str(frequency) + '\n')
+    else:
+        # Not sorted
+        with open(file_ingredients, 'w') as f:
+            for more_freq in counts.keys():
+                if counts[more_freq] > frequency_threshold:
+                    f.write(more_freq + ';' + str(counts[more_freq]) + '\n')
 
 
 def count_words_of_ingredients_list():
@@ -65,6 +81,10 @@ def count_words_of_ingredients_list():
 
     print 'Removing stop words.'
     filtered_words = ingredients_utils.remove_stop_words(ingr_word_list)
+    print len(filtered_words)
+
+    print 'Removing small words'
+    filtered_words = ingredients_utils.remove_words_from_size(filtered_words, size=2)
     print len(filtered_words)
 
     print 'Removing verbs and adverbs.'
@@ -81,6 +101,11 @@ def count_words_of_ingredients_list():
     print len(counts)
     print counts
     cache_counts(counts)
+
+    # Sort counts by frequency
+    sorted_counts = sorted(counts.items(), key=operator.itemgetter(1))
+    print 'sorted_counts=', len(sorted_counts), '\n', sorted_counts
+    cache_counts(sorted_counts, sorted=True, file_ingredients='../data/ingredients-sorted.txt')
 
     return counts
 
