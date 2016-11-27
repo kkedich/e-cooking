@@ -2,7 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from utils.myutils import save_json
+# from utils.myutils import save_json
 
 
 def process(history, directory):
@@ -28,6 +28,7 @@ def process(history, directory):
     plt.legend(['train', 'validation'], loc='upper left')
     # plt.savefig(directory + 'history-accuracy.png')
     plt.savefig('history-accuracy.png')
+    plt.ylim((0.2, 1.0))
     plt.clf() # Clean current figure before the following plot
 
     # Summarize history for loss
@@ -40,6 +41,12 @@ def process(history, directory):
     # plt.savefig(directory + 'history-loss.png')
     plt.savefig('history-loss.png')
     plt.clf()  # Clean current figure before the following plot
+
+    print 'acc:', history.history['acc']
+    print 'val_acc:', history.history['val_acc']
+
+    print 'loss:', history.history['loss']
+    print 'val_loss:', history.history['val_loss']
 
     # Save history of training
     # save_json('history.json', history)

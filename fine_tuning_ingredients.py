@@ -9,9 +9,6 @@ import utils.data as data
 from utils.data_analysis import dist_samples_per_ingredient
 
 from keras.models import load_model
-# from keras import backend as K
-# import keras.backend.tensorflow_backend as TB
-# import tensorflow as tf
 
 
 def predict_this(image_file, file_ingredients='./data/ingredients.txt'):
@@ -124,9 +121,9 @@ def main():
     evaluate_model = True
 
     # validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
-    nb_epoch = 100  # 100
+    nb_epoch = 90  # 100
     dropout = 0.5
-    neurons_last_layer = 512  # 256, 4096
+    neurons_last_layer = 1024  # 256, 4096
     my_batch_size = 32
     custom_loss = None #'weighted_binary_crossentropy' #'weighted_binary_crossentropy' or None for binary_crossentropy
 
@@ -166,7 +163,7 @@ def main():
     if not os.path.exists(file_dist_ingredients_dict) or override:
         ingredients_weight_dict, ingredients_weight_array = dist_samples_per_ingredient(data=data_train,
                                                          file_ingredients=file_ingredients,
-                                                         generate_figure=True, image_file='dist_ingredients_train.png')
+                                                         generate_figure=False, image_file='dist_ingredients_train.png')
         np.save(open(file_dist_ingredients_dict, 'w'), ingredients_weight_dict)
         np.save(open(file_dist_ingredients_array, 'w'), ingredients_weight_array)
     else:

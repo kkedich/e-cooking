@@ -9,9 +9,7 @@ from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend as K
-# from keras.objectives import binary_crossentropy
 from keras.optimizers import SGD, Adam, RMSprop
-# from keras import optimizers
 
 # from learning.my_loss_function import weighted_binary_crossentropy
 from learning.my_other_loss_function import weighted_loss
@@ -19,8 +17,6 @@ from learning.my_other_loss_function import weighted_loss
 # Path to the model weights file. https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3
 weights_path = 'vgg16_weights.h5'
 
-# def weighted_binary_crossentropy(y_true, y_pred):
-#     return K.mean(K.binary_crossentropy(y_pred, y_true), axis=-1)
 
 def acc3(y_true, y_pred):
     return K.mean(K.equal(K.argmax(y_true, axis=-1), K.argmax(y_pred, axis=-1)))

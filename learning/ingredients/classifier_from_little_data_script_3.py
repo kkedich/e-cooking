@@ -1,16 +1,13 @@
 import numpy as np
 np.random.seed(0)
 
-# from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
-# from keras.layers import Activation, \
 from keras.layers import Dropout, Flatten, Dense
 from keras import backend as K
 
 from learning import result
-# from learning.my_loss_function import weighted_binary_crossentropy
 from learning.my_other_loss_function import weighted_loss
 
 import os
@@ -132,15 +129,15 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     #               optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
     #               metrics=['accuracy'])
 
-    for layer in model.layers:
-        print layer.get_config()
+    # for layer in model.layers:
+    #     print layer.get_config()
 
     print '\n'
     model.summary()
 
     history = None
     if custom_loss is None:
-        model.compile(optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+        model.compile(optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),  #SGD(lr=0.001)
                       loss='binary_crossentropy',  # loss={'ingredients': 'binary_crossentropy'},
                       metrics=['accuracy', acc2])
 
@@ -172,5 +169,6 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     model.save(final_vgg16_model)
 
     result.process(history, '../e-cooking/')
-    np.save(open('history.npy', 'w'), history)
+    # print history
+    # np.save(open('history.npy', 'w'), history)
 
