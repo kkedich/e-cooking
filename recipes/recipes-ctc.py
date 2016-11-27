@@ -290,6 +290,7 @@ def get_recipes_data(output_dataset_file, output_notfound_file, file_last_recipe
 
 
 def main():
+    # Crawler for recipes/ingredients - ctc
     # Get list of recipes
     recipes_urls = list_recipes_urls(True)
 

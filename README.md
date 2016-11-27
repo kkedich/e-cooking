@@ -2,7 +2,7 @@
 
 Final Project for IA896 — Introduction to Multimedia Information Retrieval 2016-2 class at FEEC/UNICAMP.
 
-Category and ingredient recognition of food images. 
+Recognition of the food category and ingredient list of food images. 
 
 ####Dataset
 

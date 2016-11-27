@@ -9,6 +9,10 @@ import utils.data as data
 from utils.data_analysis import dist_samples_per_ingredient
 
 from keras.models import load_model
+from keras import backend as K
+
+def acc2(y_true, y_pred):
+    return K.mean(K.equal(y_true, K.round(y_pred)))
 
 
 def predict_this(image_file, file_ingredients='./data/ingredients.txt'):
@@ -123,7 +127,7 @@ def main():
     # validation_split = 0.05  # 10 % of train data for validation, the last % of the data is used for validation
     nb_epoch = 90  # 100
     dropout = 0.5
-    neurons_last_layer = 1024  # 256, 4096
+    neurons_last_layer = 1024  # 512, 1024 256, 4096
     my_batch_size = 32
     custom_loss = None #'weighted_binary_crossentropy' #'weighted_binary_crossentropy' or None for binary_crossentropy
 
@@ -183,6 +187,8 @@ def main():
 
     # Define which gpu we are going to use
     # with TB.tf.device('/gpu:1'):
+    # TODO when using custom metric the keras doesnt load the model properly: avoid using custom metrics, or change
+    # the save function to save the weights and json of the model
     if not os.path.exists(C.file_bottleneck_features_train) or override:
         classifier2.save_bottlebeck_features(C.file_bottleneck_features_train, C.file_bottleneck_features_validation,
                                              img_width=C.IMG_WIDTH, img_height=C.IMG_HEIGHT,

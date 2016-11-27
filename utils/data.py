@@ -208,9 +208,9 @@ def load_all_ingredients(file='../data/ingredients.txt'):
     return ingredients
 
 
-# Util function to open, resize and format pictures into appropriate tensors
-# (from an example in the keras documentation)
 def preprocess_image(image_path, img_height=224, img_width=224):
+    """Util function to open, resize and format pictures into appropriate tensors
+       (from an example in the keras documentation - image_utils)"""
     img = load_img(image_path, target_size=(img_height, img_width))  # target_size=(img_nrows, img_ncols)
     img = img_to_array(img)
     # img = np.expand_dims(img, axis=0)  # parameter for the function is an array

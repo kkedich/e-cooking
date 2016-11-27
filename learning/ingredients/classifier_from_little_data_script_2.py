@@ -156,7 +156,7 @@ def train_top_model(file_bottleneck_features_train, file_bottleneck_features_val
     if custom_loss is None:
         model.compile(optimizer='sgd',
                       loss='binary_crossentropy',
-                      metrics=['accuracy', acc2])
+                      metrics=['accuracy'])
 
 
         model.fit(train_data, y=train_ingredients,

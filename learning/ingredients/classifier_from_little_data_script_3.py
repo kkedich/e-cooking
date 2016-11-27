@@ -139,7 +139,7 @@ def fine_tuning(top_model_weights_path, final_vgg16_model,
     if custom_loss is None:
         model.compile(optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),  #SGD(lr=0.001)
                       loss='binary_crossentropy',  # loss={'ingredients': 'binary_crossentropy'},
-                      metrics=['accuracy', acc2])
+                      metrics=['accuracy'])
 
 
         history = model.fit(train_data, y=train_ingredients,  # y={'ingredients': ingredients}

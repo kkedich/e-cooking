@@ -100,8 +100,8 @@ def dist_samples_per_ingredient(data, file_ingredients, json_file=None, values=N
         inverse_dist_ingredients[index] = 1.0 - samples_per_ingredient[0][index]
 
 
-    print result_for_keras['weight'].shape
-    print result_for_keras['weight']
+    # print result_for_keras['weight'].shape
+    # print result_for_keras['weight']
     return inverse_dist_ingredients, result_for_keras['weight']
 
 

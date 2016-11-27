@@ -257,6 +257,8 @@ def list_recipes_urls(load=False):
 
 
 def main():
+    # Crawler for recipes/ingredients - fn
+
     # Get list of recipes
     recipes_urls = list_recipes_urls(True)
 
