@@ -125,6 +125,34 @@ def clean_recipes_terms(ingredient):
     ingredient = re.sub("recipe", "", ingredient)
     ingredient = re.sub("cooking", "", ingredient)
 
+
+    # other terms found in the recipes
+    ingredient = re.sub("juice", "", ingredient)
+    ingredient = re.sub("cocktail", "", ingredient)
+    ingredient = re.sub("vegan", "", ingredient)
+    ingredient = re.sub("veggie", "", ingredient)
+    ingredient = re.sub("lukewarm", "", ingredient)
+    ingredient = re.sub("soaked", "", ingredient)
+    ingredient = re.sub("betty", "", ingredient)
+    ingredient = re.sub("gluten", "", ingredient)
+    ingredient = re.sub("pale", "", ingredient)
+    ingredient = re.sub("tequila", "", ingredient)
+    ingredient = re.sub("dice", "", ingredient)
+    ingredient = re.sub("stock", "", ingredient)
+    ingredient = re.sub("piece", "", ingredient)
+    ingredient = re.sub("dry", "", ingredient)
+    ingredient = re.sub("cow", "", ingredient)
+    ingredient = re.sub("crumbles", "", ingredient)
+    ingredient = re.sub("meal", "", ingredient)
+    ingredient = re.sub("winter", "", ingredient)
+    ingredient = re.sub("farmer", "", ingredient)
+    ingredient = re.sub("dessert", "", ingredient)
+    ingredient = re.sub("candied", "", ingredient)
+    ingredient = re.sub("campari", "", ingredient)
+    ingredient = re.sub("blanco", "", ingredient)
+    ingredient = re.sub("hershey", "", ingredient)
+    ingredient = re.sub("confit", "", ingredient)
+
     return ingredient
 
 
