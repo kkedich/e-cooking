@@ -28,3 +28,4 @@ The pre-processing steps for the VGG16, e.g., mean subtraction, load of images, 
 ####References
 
 + [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)  
++ [Rethinking the Inception Architecture for Computer Vision](https://arxiv.org/abs/1512.00567)  

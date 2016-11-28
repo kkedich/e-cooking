@@ -152,6 +152,7 @@ def clean_recipes_terms(ingredient):
     ingredient = re.sub("blanco", "", ingredient)
     ingredient = re.sub("hershey", "", ingredient)
     ingredient = re.sub("confit", "", ingredient)
+    ingredient = re.sub("may", "", ingredient)
 
     return ingredient
 

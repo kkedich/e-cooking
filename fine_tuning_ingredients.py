@@ -15,7 +15,7 @@ def acc2(y_true, y_pred):
     return K.mean(K.equal(y_true, K.round(y_pred)))
 
 
-def predict_this(image_file, file_ingredients='./data/ingredients.txt'):
+def predict_this(image_file, file_ingredients='./data/new-ingredients.txt'):
     """Predict the ingredients of an image with the last available model
        return: list of strings with the ingredients.
        Ex: predict_this('food.jpg')
@@ -94,7 +94,7 @@ def predict(sample_data, model_file, dir_images, list_of_all_ingredients):
 def predict_ingredients():
     """Predict ingredients for some sample (model already trained)"""
     sample_data, dir_sample = data.sample('pre-processed-full-recipes-dataset.json', './data/full-recipes-dataset/')
-    list_of_all_ingredients = data.load_all_ingredients(file='./data/ingredients.txt')
+    list_of_all_ingredients = data.load_all_ingredients(file='./data/new-ingredients.txt')
 
     predict(sample_data, C.final_vgg16_model, dir_sample, list_of_all_ingredients)
 
@@ -120,6 +120,8 @@ def evaluate(data_test, path_images, model_file, file_ingredients, output_file_a
 
 
 def main():
+    # TODO salvar o modelo com o json e pesos separados, isso para nao dar erro quando salvamos funcoes de custo personalizadas
+    # arrumar o salvar do history, e plot de figuras
     # K.set_image_dim_ordering('th')
     override = False
     evaluate_model = True
